@@ -12,70 +12,67 @@ type Meeting = {
 type Phase2Props = {
   meeting: Meeting | null
   onBack: () => void
+  onNext: () => void
 }
 
-const mockExpert = {
-  name: 'Expert',
-  premise: '녹색분류체계의 목표는 그린워싱 방지와 녹색투자 활성화인데, 논란 큰 에너지원을 서둘러 포함하면 두 목표 모두 달성 어려움',
-  reason: 'LNG는 전과정 기준 석탄의 70% 배출, 블루수소도 탄소중립 기여도 낮음. 국제 기준과의 정합성도 문제',
-  hiddenPremise: '제도 무결성이 시장 신뢰의 기반이며, 첫 출발부터 애매하면 장기적 신뢰를 잃을 수 있음',
-  conclusion: '논란 큰 에너지원은 충분한 논의와 데이터 확보 후 확장해야 함'
+const mockExpert = { // 시민/청년 대표 (비판 측)
+  name: '시민·청년 (비판 측)',
+  premise: '국가 R&D는 국민 세금이며, 지역 주민의 삶과 연구자의 생존을 보장해야 한다.',
+  reason: '전략기술 몰빵은 지역 소멸을 가속화하고, 단기 성과주의는 연구 생태계를 황폐화시킨다.',
+  hiddenPremise: '성장보다 분배와 안정이 우선이며, 내가 배제된 성장은 의미가 없다.',
+  conclusion: '전략기술 예산 독점을 막고, 생활·안전 R&D와 인력 투자를 보장해야 한다.'
 }
 
-const mockOfficial = {
-  name: 'Official',
-  premise: '탄소중립 시나리오·NDC에서 LNG·청정수소가 과도기적으로 이미 반영되어 있고, 석탄을 줄이기 위해 현실적으로 필요',
-  reason: '지금 당장 모든 전원을 재생에너지로 대체할 수 없으며, 전원믹스 전환 과정에서 LNG는 과도기적으로 필요',
-  hiddenPremise: '완벽하지만 안 돌아가는 제도보다, 조금 미흡해도 실제로 돌아가고 나중에 기준을 상향할 수 있는 제도가 더 낫다',
-  conclusion: 'LNG·청정수소를 녹색이 아닌 전환활동으로 한시적 인정하고, 기준을 지속적으로 상향 조정'
+const mockOfficial = { // 정부/산업 대표 (추진 측)
+  name: '정부·산업 (추진 측)',
+  premise: '글로벌 기술 패권 경쟁에서 살아남으려면 선택과 집중이 불가피하다.',
+  reason: '나눠주기식 R&D로는 임팩트를 낼 수 없으며, 국가 경쟁력이 없으면 복지 재원도 없다.',
+  hiddenPremise: '낙수 효과는 유효하며, 지금의 희생이 나중에 더 큰 보상으로 돌아올 것이다.',
+  conclusion: '전략기술에 집중 투자하여 파이를 키우는 것이 최우선 과제다.'
 }
 
 const mockTranslationExpertToOfficial = {
-  title: 'Expert → Official을 위한 "리스크 관리 언어" 번역',
+  title: '시민/청년 → 정부를 위한 "리스크 관리 언어" 번역',
   risks: [
     {
-      type: '정책 리스크',
-      content: '국제 기준이 더 엄격해질 때, 현재 LNG·블루수소 프로젝트가 향후 규제 강화로 좌초자산이 될 가능성이 큽니다.'
+      type: '정책 정당성 리스크',
+      content: '지역 주민과 청년 연구자가 배제된 R&D는 "그들만의 리그"로 인식되어, 장기적인 정책 지지를 잃을 수 있습니다.'
     },
     {
-      type: '금융 리스크',
-      content: '녹색이라는 이름이 붙은 채 실제 감축효과가 낮은 자산에 자본이 배분되면, 금융기관·정부 모두 평판 리스크를 떠안게 됩니다.'
+      type: '사회 통합 리스크',
+      content: '지역 간 격차가 심화되면 "국가 R&D 무용론"이나 조세 저항 같은 사회적 갈등 비용이 발생합니다.'
     },
     {
-      type: '정책 목표 리스크',
-      content: '전환 대형 프로젝트에 자본이 쏠리면, 다수의 소규모 진짜 기후 프로젝트에 대한 투자가 위축될 수 있습니다.'
+      type: '연구 생태계 붕괴 리스크',
+      content: '단기 성과에만 집착하면 도전적 연구가 사라지고, 인재들이 해외로 유출되어 결국 기술 경쟁력도 잃게 됩니다.'
     }
   ],
-  conclusion: '따라서 전환활동을 포함시키더라도 녹색과 분리된 명확한 구분(전환채권/녹색채권), 엄격한 조건(한시적 인정, 기준 상향, LCA 적용 시한)이 필요합니다.'
+  conclusion: '따라서 전략기술 투자와 별도로, 생활·안전 R&D와 인력 투자를 "사회적 안전망" 차원에서 필수적으로 확보해야 합니다.'
 }
 
 const mockTranslationOfficialToExpert = {
-  title: 'Official → Expert를 위한 "전략적 전환 언어" 번역',
+  title: '정부 → 시민을 위한 "전략적 전환 언어" 번역',
   strategy: [
     {
       step: '최종 목표',
-      content: '재생에너지·그린수소 중심의 전원믹스로 전환'
+      content: '기술 경쟁력 확보를 통해 세수와 일자리를 늘려, 결국 국민 삶의 질과 복지를 향상시키는 것'
     },
     {
-      step: '중간 단계',
-      content: '현재 석탄 의존도가 높은 상황에서, 단기간에 석탄을 줄이기 위한 중간 경유지로 LNG·청정수소를 활용'
+      step: '선투자 전략',
+      content: '지금은 골든타임이므로 전략기술에 선투자하여 재원을 확보하려는 것이며, 지역 소외가 목적이 아님'
     },
     {
-      step: '한시적 인정',
-      content: '이들 활동을 녹색활동이 아닌 전환활동으로 한시적 인정하여 진녹색 기준과 혼동되지 않도록 함'
-    },
-    {
-      step: '향후 개선 약속',
-      content: '기준은 시범운영과 기술 발전에 따라 상향 조정할 계획이며, 녹색과 전환을 채권 차원에서 구분 발행하는 방안도 검토 중'
+      step: '제도적 보완',
+      content: '전략기술 성과가 지역과 생활 안전으로 환류될 수 있도록, 예산 배분 구조와 평가 체계를 함께 개선하겠음'
     }
   ]
 }
 
 const mockBridgeSentences = [
-  'LNG·블루수소는 녹색활동이 아니라 전환활동으로만 한시 인정한다.',
-  '전환활동의 기준은 LCA를 3년 유예 후 2025년부터 의무 적용하고, 국제 기준에 맞춰 지속적으로 강화한다.',
-  '녹색채권과 전환채권을 상품·공시·금리 구조에서 명확히 구분한다.',
-  '논란이 큰 에너지원은 시범운영 기간 동안 별도의 색상·레이블(예: 황색/적색)을 부여해 시장에 명확한 정보를 제공한다.'
+  '예산을 3바스켓(A:전략기술 / B:응용 / C:생활·안전·기초)으로 구분하여 관리한다.',
+  '전략기술(A)에 집중하되, Phase0에서 제기된 "지역 생존권" 우려를 반영하여 생활·안전·기초(C) 바스켓은 전체의 최소 N% 이상을 의무 배정한다.',
+  '단기 성과 지표 대신, 청년 연구자와 시민이 참여하는 새로운 평가위원회 시범사업을 도입한다.',
+  '지역 R&D는 나눠주기가 아니라 "지역 특화형 전략산업"과 연계하여 실효성을 높인다.'
 ]
 
 const mockLogs = [
@@ -86,27 +83,27 @@ const mockLogs = [
   },
   {
     label: 'User(Phase2) 입력',
-    content: '집단 A: LNG 포함 반대 논리 / 집단 B: 과도기적 포함 필요 논리',
+    content: '집단 A: 전략기술 집중 투자 / 집단 B: 지역 소외 및 단기 성과 비판',
     type: 'input' as const
   },
   {
     label: 'AI 출력 – 리스크 관리 번역',
-    content: '국제 기준 강화 시 좌초자산 리스크, 평판 리스크, 정책 목표 리스크...',
+    content: '정책 정당성 리스크, 사회 통합 리스크, 연구 생태계 붕괴 리스크...',
     type: 'output' as const
   },
   {
     label: 'AI 출력 – 전략적 전환 번역',
-    content: '최종 목표는 재생에너지, 중간 경유지로 LNG 한시 활용, 기준 상향 약속...',
+    content: '최종 목표는 삶의 질 향상, 선투자 후환류 전략, 제도적 보완 약속...',
     type: 'output' as const
   },
   {
     label: 'AI 출력 – 브릿지 문장',
-    content: '녹색활동이 아닌 전환활동으로 한시 인정한다 / LCA 2025 적용 / 채권 구분...',
+    content: '예산 3바스켓 구조 / C바스켓 최소 비율 / 평가위원회 시범사업...',
     type: 'output' as const
   }
 ]
 
-export default function Phase2({ meeting, onBack }: Phase2Props) {
+export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
   const [bridgeStatus, setBridgeStatus] = useState<Record<number, 'adopted' | 'edited' | 'dropped'>>({
     0: 'adopted',
     1: 'edited',
@@ -138,6 +135,7 @@ export default function Phase2({ meeting, onBack }: Phase2Props) {
           ← Phase 선택으로
         </button>
         <h1 className="page-title">Phase 2 – 논증 구조화 & 가치 번역</h1>
+        <p className="phase-desc">AI 완충지대 핵심 단계: 논쟁 구조도 → 가치 번역 → 브릿지 문장</p>
         {meeting && (
           <p className="page-subtitle">{meeting.name} - {meeting.agenda}</p>
         )}
@@ -168,152 +166,164 @@ export default function Phase2({ meeting, onBack }: Phase2Props) {
         )}
       </div>
 
+      {/* Section 1: 논쟁 구조도 */}
       <div style={{ marginBottom: '2rem' }}>
         <div className="card">
-          <h2 className="card-title">논증 구조화</h2>
+          <h2 className="card-title">논쟁 구조도</h2>
           <div className="grid grid-2" style={{ marginTop: '1rem' }}>
-            {/* Expert 논리 구조 */}
+            {/* 좌측: 시민/참여자 논점 (감정/우려 기반) */}
             <div>
               <div style={{ 
-                padding: '1rem', 
-                background: '#f0f7ff', 
-                borderRadius: '6px',
-                border: '1px solid #b8dce8'
+                padding: '1.25rem', 
+                background: '#e8f5e9', 
+                borderRadius: '8px',
+                border: '2px solid #4caf50',
+                height: '100%'
               }}>
-                <h3 style={{ marginBottom: '1rem', color: '#2c5f7c' }}>{mockExpert.name} 논리 구조</h3>
-                
-                <div style={{ marginBottom: '1rem' }}>
-                  <strong>전제:</strong>
-                  <p style={{ marginTop: '0.25rem', color: '#555', fontSize: '0.9rem' }}>
-                    {mockExpert.premise}
-                  </p>
-                </div>
-
-                <div style={{ marginBottom: '1rem' }}>
-                  <strong>이유:</strong>
-                  <p style={{ marginTop: '0.25rem', color: '#555', fontSize: '0.9rem' }}>
-                    {mockExpert.reason}
-                  </p>
-                </div>
-
-                <div style={{ marginBottom: '1rem' }}>
-                  <strong>숨은 전제:</strong>
-                  <p style={{ marginTop: '0.25rem', color: '#555', fontSize: '0.9rem' }}>
-                    {mockExpert.hiddenPremise}
-                  </p>
-                </div>
-
-                <div>
-                  <strong>결론:</strong>
-                  <p style={{ marginTop: '0.25rem', color: '#555', fontSize: '0.9rem' }}>
-                    {mockExpert.conclusion}
-                  </p>
-                </div>
+                <h3 style={{ margin: '0 0 1rem 0', color: '#2e7d32', fontSize: '1.1rem', fontWeight: '700' }}>
+                  시민/참여자 논점
+                </h3>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: 0, color: '#2e7d32', fontWeight: 'bold' }}>•</span>
+                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>지역 소외</span>
+                  </li>
+                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: 0, color: '#2e7d32', fontWeight: 'bold' }}>•</span>
+                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>생활·안전 미반영</span>
+                  </li>
+                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: 0, color: '#2e7d32', fontWeight: 'bold' }}>•</span>
+                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>"성장" 명목 희생 우려</span>
+                  </li>
+                </ul>
               </div>
             </div>
 
-            {/* Official 논리 구조 */}
+            {/* 우측: 전문가/정부 논점 (정책/데이터 기반) */}
+            <div>
+              <div style={{ 
+                padding: '1.25rem', 
+                background: '#e3f2fd', 
+                borderRadius: '8px',
+                border: '2px solid #2196f3',
+                height: '100%'
+              }}>
+                <h3 style={{ margin: '0 0 1rem 0', color: '#1565c0', fontSize: '1.1rem', fontWeight: '700' }}>
+                  전문가/정부 논점
+                </h3>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: 0, color: '#1565c0', fontWeight: 'bold' }}>•</span>
+                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>투자집중 필요성</span>
+                  </li>
+                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: 0, color: '#1565c0', fontWeight: 'bold' }}>•</span>
+                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>전략기술 우선</span>
+                  </li>
+                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+                    <span style={{ position: 'absolute', left: 0, color: '#1565c0', fontWeight: 'bold' }}>•</span>
+                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>ROI / 글로벌 경쟁</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          {/* 아래 화살표 */}
+          <div style={{ 
+            textAlign: 'center', 
+            marginTop: '1.5rem',
+            fontSize: '2rem',
+            color: '#666'
+          }}>
+            ↓
+          </div>
+        </div>
+      </div>
+
+      {/* Section 2: AI Bridge (자동 번역) */}
+      <div style={{ marginBottom: '2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.5rem', color: '#666' }}>
+          ▼ AI Bridge (자동 번역)
+        </div>
+        <div className="card">
+          <h2 className="card-title">MediR&D의 번역 결과</h2>
+          <div className="grid grid-2" style={{ marginTop: '1rem', gap: '1.5rem' }}>
+            {/* 좌측: 시민 발언 → 정부가 이해할 수 있는 언어로 */}
             <div>
               <div style={{ 
                 padding: '1rem', 
-                background: '#fff9f0', 
+                background: '#fff3e0', 
                 borderRadius: '6px',
-                border: '1px solid #ffd4a3'
+                border: '1px solid #ffb74d'
               }}>
-                <h3 style={{ marginBottom: '1rem', color: '#8b5a00' }}>{mockOfficial.name} 논리 구조</h3>
-                
-                <div style={{ marginBottom: '1rem' }}>
-                  <strong>전제:</strong>
-                  <p style={{ marginTop: '0.25rem', color: '#555', fontSize: '0.9rem' }}>
-                    {mockOfficial.premise}
-                  </p>
-                </div>
+            <h3 style={{ 
+              marginBottom: '1rem', 
+              color: '#e65100', 
+              fontSize: '1rem',
+              fontWeight: '600'
+            }}>
+              시민 → 정부 번역 (리스크 관리 언어)
+            </h3>
+                {mockTranslationExpertToOfficial.risks.map((risk, idx) => (
+                  <div key={idx} style={{ marginBottom: '1rem' }}>
+                    <strong style={{ fontSize: '0.9rem', color: '#d32f2f' }}>
+                      {risk.type}:
+                    </strong>
+                    <p style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                      {risk.content}
+                    </p>
+                  </div>
+                ))}
+                <div className="divider" style={{ margin: '1rem 0' }}></div>
+                <p style={{ color: '#555', fontSize: '0.9rem', lineHeight: '1.6', fontStyle: 'italic' }}>
+                  {mockTranslationExpertToOfficial.conclusion}
+                </p>
+              </div>
+            </div>
 
-                <div style={{ marginBottom: '1rem' }}>
-                  <strong>이유:</strong>
-                  <p style={{ marginTop: '0.25rem', color: '#555', fontSize: '0.9rem' }}>
-                    {mockOfficial.reason}
-                  </p>
-                </div>
-
-                <div style={{ marginBottom: '1rem' }}>
-                  <strong>숨은 전제:</strong>
-                  <p style={{ marginTop: '0.25rem', color: '#555', fontSize: '0.9rem' }}>
-                    {mockOfficial.hiddenPremise}
-                  </p>
-                </div>
-
-                <div>
-                  <strong>결론:</strong>
-                  <p style={{ marginTop: '0.25rem', color: '#555', fontSize: '0.9rem' }}>
-                    {mockOfficial.conclusion}
-                  </p>
-                </div>
+            {/* 우측: 정부 발언 → 시민이 받아들일 수 있는 언어로 */}
+            <div>
+              <div style={{ 
+                padding: '1rem', 
+                background: '#e8eaf6', 
+                borderRadius: '6px',
+                border: '1px solid #7986cb'
+              }}>
+            <h3 style={{ 
+              marginBottom: '1rem', 
+              color: '#283593', 
+              fontSize: '1rem',
+              fontWeight: '600'
+            }}>
+              정부 → 시민 번역 (전략적 전환 언어)
+            </h3>
+                {mockTranslationOfficialToExpert.strategy.map((item, idx) => (
+                  <div key={idx} style={{ marginBottom: '1rem' }}>
+                    <strong style={{ fontSize: '0.9rem', color: '#1976d2' }}>
+                      {item.step}:
+                    </strong>
+                    <p style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                      {item.content}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          <button
-            className={`btn ${activeTab === 'expert' ? 'btn-primary' : ''}`}
-            style={{ flex: 1 }}
-            onClick={() => setActiveTab('expert')}
-          >
-            Expert → Official (리스크 관리)
-          </button>
-          <button
-            className={`btn ${activeTab === 'official' ? 'btn-primary' : ''}`}
-            style={{ flex: 1 }}
-            onClick={() => setActiveTab('official')}
-          >
-            Official → Expert (전략적 전환)
-          </button>
+      {/* Section 3: 보조적 표현 후보 (채택/수정/폐기) */}
+      <div style={{ marginBottom: '2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.5rem', color: '#666' }}>
+          ▼ 보조적 표현 후보
         </div>
-
-        {activeTab === 'expert' && (
-          <div>
-            <h2 className="card-title">{mockTranslationExpertToOfficial.title}</h2>
-            {mockTranslationExpertToOfficial.risks.map((risk, idx) => (
-              <div key={idx} style={{ marginBottom: '1rem' }}>
-                <strong style={{ fontSize: '0.95rem', color: '#d32f2f' }}>
-                  {risk.type}:
-                </strong>
-                <p style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.95rem', lineHeight: '1.5' }}>
-                  {risk.content}
-                </p>
-              </div>
-            ))}
-            <div className="divider"></div>
-            <p style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6', fontStyle: 'italic' }}>
-              {mockTranslationExpertToOfficial.conclusion}
-            </p>
-          </div>
-        )}
-
-        {activeTab === 'official' && (
-          <div>
-            <h2 className="card-title">{mockTranslationOfficialToExpert.title}</h2>
-            {mockTranslationOfficialToExpert.strategy.map((item, idx) => (
-              <div key={idx} style={{ marginBottom: '1rem' }}>
-                <strong style={{ fontSize: '0.95rem', color: '#1976d2' }}>
-                  {item.step}:
-                </strong>
-                <p style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.95rem', lineHeight: '1.5' }}>
-                  {item.content}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 브릿지 문장 */}
-          <div style={{ marginTop: '2rem' }}>
-            <div className="card">
-              <h2 className="card-title">브릿지 문장 제안 & 선택</h2>
+        <div className="card">
+          <h2 className="card-title">브릿지 문장 제안 & 선택</h2>
+          <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
+            AI가 생성한 브릿지 문장 후보입니다. 각 문장에 대해 채택/수정/폐기를 선택하세요.
+          </p>
               <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
                 양쪽이 부분적으로라도 수용할 수 있을 것 같은 브릿지 문장들입니다. 채택/수정/폐기 상태를 선택해 보여주세요.
               </p>
@@ -379,7 +389,7 @@ export default function Phase2({ meeting, onBack }: Phase2Props) {
         </div>
       </div>
 
-      <TabletCTA onPrev={onBack} nextDisabled nextLabel="다음 단계 → (Phase 선택에서 이동)" />
+      <TabletCTA onPrev={onBack} onNext={onNext} nextDisabled={false} nextLabel="다음 단계 → (Phase 3)" />
     </div>
   )
 }

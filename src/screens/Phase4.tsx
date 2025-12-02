@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { FaRobot, FaFileAlt } from 'react-icons/fa'
 import PhaseGuide from '../components/PhaseGuide'
 import TabletCTA from '../components/TabletCTA'
 
@@ -11,77 +12,61 @@ type Meeting = {
 type Phase4Props = {
   meeting: Meeting | null
   onBack: () => void
+  onNext: () => void
 }
 
 const mockAgreementItems = [
   {
     number: 1,
-    title: '분류 원칙',
+    title: '기본 원칙: 3바스켓 예산 구조 도입',
     items: [
-      'LNG·청정수소·블루수소는 녹색활동이 아니라 전환활동으로만 한시 인정한다.',
-      '전환활동은 NDC·탄소중립 시나리오보다 느슨해질 수 없으며, 시나리오와의 정합성을 매년 점검한다.'
+      '국가 R&D 예산을 A(전략기술), B(중장기 응용), C(생활·안전·기초·인력) 세 바스켓으로 구분하여 관리한다.',
+      '각 바스켓은 서로 다른 목표와 평가 기준을 적용한다.'
     ]
   },
   {
     number: 2,
-    title: '조건 1 – LCA 도입 및 유예 한계',
+    title: '조건 1 – 생활·안전(C) 바스켓 최소 비율 보장',
     items: [
-      'LCA는 3년 유예 후 2025년부터 적용한다.',
-      '유예 기간 내 LCA 데이터가 확보되지 않는 활동은 전환활동 인정 대상에서 제외할 수 있다.'
+      'Phase0 사전 인터뷰에서 드러난 "지역 생존권"과 "박탈감(소외)" 우려를 반영하여, 생활·안전·보건 및 기초 연구 예산(C)은 전체의 최소 N% 이상을 의무적으로 확보한다.',
+      '이 비율은 매년 전략환경 변화와 평가 결과에 따라 재조정하되, 전년 대비 급격한 축소를 방지한다.'
     ]
   },
   {
     number: 3,
-    title: '조건 2 – 녹색·전환 금융상품의 명확한 구분',
+    title: '조건 2 – 평가 체계 개편 시범사업',
     items: [
-      '녹색채권과 전환채권을 상품명, 공시, 금리, 만기 구조에서 명확히 구분한다.',
-      '전환채권에는 녹색채권보다 높은 리스크 프리미엄을 반영한다.'
+      '단기 성과 지표 대신 과정과 잠재력을 보는 새로운 평가 방식을 도입한다.',
+      '청년 연구자와 시민 대표가 참여하는 평가위원회 시범사업을 3년간 운영하고, 이후 제도화 여부를 검토한다.'
     ]
   },
   {
     number: 4,
-    title: '조건 3 – 시범운영 및 기준 상향',
+    title: '조건 3 – 정보 공개 및 환류',
     items: [
-      '1년간 시범운영 후 그린워싱 방지 효과, 녹색·전환 투자 비율, 좌초자산 리스크 지표를 평가한다.',
-      '평가 결과를 반영해 기준을 상향하거나, 특정 전환활동(LNG·블루수소 등)의 범위를 축소·조정한다.'
-    ]
-  },
-  {
-    number: 5,
-    title: '조건 4 – 논란 큰 에너지원에 대한 정보 제공',
-    items: [
-      'LNG·블루수소 등 논란이 큰 에너지원은 "녹색, 황색, 적색" 등 레이블 구분을 도입해 투자자에게 명확한 정보를 제공하는 방안을 추가 검토한다.'
-    ]
-  },
-  {
-    number: 6,
-    title: '소수 의견의 명시적 포함',
-    items: [
-      '일부 위원은 블루수소의 전과정 배출 특성, 국내 수소 인프라 투자 구조를 감안하더라도 블루수소를 전환활동에 포함하는 것 자체에 반대한다.',
-      '이 의견은 향후 기준 상향·재검토 과정에서 별도 검토 대상임을 합의문에 함께 명시한다.'
+      '각 바스켓별 예산 배분 결과와 성과 지표를 국민에게 투명하게 공개한다.',
+      '전략기술 투자의 성과가 지역과 생활 안전으로 환류되는지 측정할 수 있는 지표를 개발한다.'
     ]
   }
 ]
 
 const mockRemainingIssues = [
-  '재생에너지 비중의 구체적 수치와 시기',
-  'LNG·블루수소의 전환활동 인정 기간의 구체적 상한선',
-  '녹색·전환 채권 금리 차등화의 구체적 수준',
-  '시범운영 평가 지표의 가중치와 기준',
-  'LCA 데이터 확보 실패 시 제외 절차의 구체적 기준'
+  '전략기술(A) 바스켓의 예산 비중 상한선 설정 여부',
+  '생활·안전(C) 바스켓의 구체적인 최소 비율(%) 수치 (Phase0에서 제기된 "지역 소멸" 우려를 고려)',
+  '평가위원회 시범사업의 위원 구성 비율 및 권한 범위',
+  '지방 R&D 예산의 배분 방식(지자체 자율 vs 중앙 공모) - "지역 생존권" 보장을 위한 구체적 방안'
 ]
 
 const mockNextSteps = [
-  '각 집단의 세부 의견 수렴 및 보완',
-  '구체적 수치와 일정에 대한 추가 협의',
-  '시범운영 계획 수립 및 평가 체계 설계',
-  '녹색·전환 채권 구분 발행 방안의 세부 설계',
-  '레이블 구분(녹색/황색/적색) 시스템의 구체적 설계'
+  '각 바스켓별 구체적 예산 시나리오 시뮬레이션',
+  '평가위원회 시범사업 운영 계획 수립',
+  '생활·안전 R&D의 구체적 대상 사업 발굴',
+  '대국민 공청회를 통한 의견 수렴'
 ]
 
 const phaseGuide = {
   purpose: '조건부 합의안을 문서 형태로 초안화하고, 남은 쟁점을 명시해 "마지못한 타협"임을 보여줍니다.',
-  inputs: ['공통 원칙', '레드라인(집단 A/B)', '남아있는 쟁점', '브릿지 문장 검증 결과'],
+  inputs: ['공통 원칙', '레드라인(정부/시민)', '남아있는 쟁점', '브릿지 문장 검증 결과'],
   outputs: ['조건부 조항 목록', '운영·평가·재검토 절차', '정보 공개·참여 보장 항목', '소수 의견 명시'],
   demoTips: [
     '각 조건에 기간/기준을 붙여 한시성·상향 가능성을 보여줌',
@@ -90,7 +75,7 @@ const phaseGuide = {
   ]
 }
 
-export default function Phase4({ meeting, onBack }: Phase4Props) {
+export default function Phase4({ meeting, onBack, onNext }: Phase4Props) {
   const [openIdx, setOpenIdx] = useState<number | null>(0)
 
   return (
@@ -103,12 +88,13 @@ export default function Phase4({ meeting, onBack }: Phase4Props) {
         >
           ← Phase 선택으로
         </button>
-        <h1 className="page-title">Phase 4 – 조건부 합의안 초안</h1>
+        <h1 className="page-title">Phase 4 – 조건부 합의(초안)</h1>
+        <p className="phase-desc">AI 문서 생성 UI: 합의 항목 조립 + 남은 쟁점 정리</p>
         {meeting && (
           <p className="page-subtitle">{meeting.name} - {meeting.agenda}</p>
         )}
         <p className="text-muted" style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
-          "무결성 vs 현실성"의 대립을 "조건부·단계적 전환 설계"로 부분적 공통 언어로 전환한 결과
+          "성장 vs 분배"의 대립을 "3바스켓 구조 + 평가 개편"으로 부분적 공통 언어로 전환한 결과
         </p>
       </div>
 
@@ -124,7 +110,13 @@ export default function Phase4({ meeting, onBack }: Phase4Props) {
         {/* 좌측: 합의안 조항 */}
         <div>
           <div className="card">
-            <h2 className="card-title">조건부 합의안(초안)</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+              <FaRobot style={{ color: '#4a90e2', fontSize: '1.2rem' }} />
+              <h2 className="card-title" style={{ marginBottom: 0 }}>AI가 생성한 조건부 합의안(초안)</h2>
+            </div>
+            <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
+              Phase 0~3의 논의를 바탕으로 AI가 자동 생성한 합의안입니다. 각 항목을 클릭하여 상세 내용을 확인하세요.
+            </p>
             {mockAgreementItems.map((item, idx) => (
               <div key={item.number} style={{ marginBottom: '0.75rem', border: '1px solid #eee', borderRadius: '10px', overflow: 'hidden' }}>
                 <button
@@ -160,18 +152,18 @@ export default function Phase4({ meeting, onBack }: Phase4Props) {
           </div>
         </div>
 
-        {/* 우측: 이견 및 다음 단계 */}
-        <div>
-          {/* 여전히 이견이 남은 쟁점 */}
-          <div className="card" style={{ marginBottom: '1.5rem' }}>
-            <h2 className="card-title">여전히 이견이 남은 쟁점</h2>
+        {/* 우측: 남은 쟁점 + 제안 */}
+        <div className="analysis-panel">
+          {/* 여전히 남은 쟁점 */}
+          <div className="card" style={{ marginBottom: '1.5rem', background: '#f5f5f5', border: '1px solid #e0e0e0' }}>
+            <h2 className="card-title" style={{ color: '#666' }}>여전히 남은 쟁점</h2>
             <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
               다음 쟁점들은 향후 별도 논의가 필요합니다.
             </p>
             <ul className="list">
               {mockRemainingIssues.map((issue, idx) => (
-                <li key={idx} className="list-item">
-                  <p style={{ color: '#555', fontSize: '0.95rem' }}>
+                <li key={idx} className="list-item" style={{ background: '#fafafa', borderColor: '#e0e0e0' }}>
+                  <p style={{ color: '#666', fontSize: '0.95rem' }}>
                     {issue}
                   </p>
                 </li>
@@ -206,14 +198,34 @@ export default function Phase4({ meeting, onBack }: Phase4Props) {
         </div>
       </div>
 
-      {/* 하단: 홈으로 돌아가기 버튼 */}
+      {/* 하단: 합의문 최종 보기 버튼 */}
       <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-        <button className="btn btn-primary" onClick={onBack}>
-          홈으로 돌아가기
+        <button 
+          className="btn btn-primary" 
+          style={{ 
+            minWidth: '200px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '1.1rem',
+            padding: '1rem 2rem'
+          }}
+          onClick={() => {
+            // 합의문 최종 보기 (새 창 또는 모달)
+            alert('합의문 최종 문서를 생성합니다.\n(실제 구현에서는 PDF 다운로드 또는 새 창 표시)')
+          }}
+        >
+          <FaFileAlt />
+          합의문 최종 보기
         </button>
+        <div style={{ marginTop: '1rem' }}>
+          <button className="btn" onClick={onBack} style={{ minWidth: '140px' }}>
+            홈으로 돌아가기
+          </button>
+        </div>
       </div>
 
-      <TabletCTA onPrev={onBack} nextDisabled nextLabel="다음 단계 → (Phase 선택에서 이동)" />
+      <TabletCTA onPrev={onBack} onNext={onNext} nextDisabled={false} nextLabel="완료 (홈으로)" />
     </div>
   )
 }

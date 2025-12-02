@@ -16,18 +16,19 @@ type Message = {
   text: string
 }
 
+// TODO: 나중에 실제 LLM 응답으로 대체될 "데모용 복붙 텍스트" (issue-dependent copy)
 const mockInterviewFlow = [
   {
-    ai: '회의 전에 몇 가지 여쭤보겠습니다. K-택소노미 논의에서, 지금 가장 크게 느끼는 감정은 무엇인가요?',
-    participant: '솔직히 말하면 불안과 분노요. LNG랑 블루수소를 이렇게 서둘러 녹색분류체계에 넣으려는 게 이해가 안 돼요.'
+    ai: '회의 전에 몇 가지 여쭤보겠습니다. 국가 R&D 예산 분배 논의에서, 당신이 가장 크게 느끼는 감정은 무엇인가요?',
+    participant: '솔직히 박탈감과 분노가 큽니다. 우리 지역엔 응급실도 없고 학교 과학실도 엉망인데, 뉴스엔 맨날 AI·양자에 수조 원 투자했다고만 나오니까요.'
   },
   {
-    ai: '지금 말씀을 정리하면, 불안(좌초자산·그린워싱 리스크)과 분노(녹색 기준이 너무 빨리, 느슨하게 정해지는 것)가 섞여 있는 것으로 보입니다. 그 뒤에 있는 핵심 가치는 "제도 무결성"과 "국제 기준과의 정합성"으로 요약할 수 있을까요?',
-    participant: '네, 맞아요. K-택소노미는 우리나라 기후금융 제도의 첫 출발인데, 여기서부터 애매하게 가면 국내·국제 시장에서 신뢰를 잃을 수 있다고 생각해요.'
+    ai: '말씀하신 내용을 보면, 박탈감(지역 소외)과 분노(희생양이라는 느낌)가 섞여 있는 것 같습니다. 그 뒤에 있는 핵심 가치는 "형평성"과 "지역 생존권", "생활 안전"으로 요약할 수 있을까요?',
+    participant: '네, 맞습니다. 국가 R&D가 국민 세금이라면, 지역 주민들의 생존과 안전을 먼저 챙겨야 한다고 생각합니다.'
   },
   {
-    ai: '그럼 당신의 프로필을 이렇게 정리해보겠습니다: "국제적 신뢰와 제도 무결성을 중시하는 신중한 비판자. 특히 논란이 큰 LNG·블루수소를 무리하게 포함시키는 것이 장기적으로 좌초자산·그린워싱·시장 혼선 리스크를 키운다고 우려함." 이 요약이 당신의 자기 이해와 대체로 일치하나요?',
-    participant: '네, 이 정도면 제가 왜 이렇게 세게 반대하는지 잘 정리된 것 같아요.'
+    ai: '그럼 당신의 프로필을 이렇게 정리해보겠습니다: "지역 생존권과 형평성을 중시하는 시민단체 활동가. 국가 R&D가 주민 삶과 동떨어져 있으며, 성장을 명분으로 지역이 또다시 희생될 것을 우려함." 이 요약이 당신의 자기 이해와 대체로 일치하나요?',
+    participant: '네, 정확합니다. 우리가 겪는 현실이 잘 반영된 것 같아요.'
   }
 ]
 
@@ -42,26 +43,30 @@ export default function Phase0Participant({ meeting, onBack }: Phase0Participant
   const handleSend = () => {
     if (!userInput.trim()) return
 
+    const nextStep = currentStep + 1
+    const isLastStep = nextStep >= mockInterviewFlow.length - 1
+
     const newMessages: Message[] = [
       ...messages,
       { speaker: 'participant', text: userInput },
-      { speaker: 'ai', text: mockInterviewFlow[currentStep + 1]?.ai || '' }
+      { speaker: 'ai', text: mockInterviewFlow[nextStep]?.ai || '' }
     ]
 
     setMessages(newMessages)
     setUserInput('')
-    setCurrentStep(currentStep + 1)
+    setCurrentStep(nextStep)
 
-    if (currentStep + 1 >= mockInterviewFlow.length - 1) {
+    if (isLastStep) {
       setInterviewComplete(true)
     }
   }
 
+  // TODO: 나중에 실제 LLM 분석 결과로 대체될 데이터
   const mockProfileSummary = {
-    role: '시민사회·연구자 출신 위원 (K-택소노미 비판적 입장)',
-    coreValues: '제도 무결성, 국제 기준과의 정합성, 예방 원칙',
-    mainEmotions: '불안(좌초자산·그린워싱 리스크), 분노(기준의 조급함)',
-    summary: '국제적 신뢰와 제도 무결성을 중시하는 신중한 비판자. 특히 논란이 큰 LNG·블루수소를 무리하게 포함시키는 것이 장기적으로 좌초자산·그린워싱·시장 혼선 리스크를 키운다고 우려함.'
+    role: '지역 시민단체 활동가 (생활·안전 R&D 중시)',
+    coreValues: '형평성, 지역 생존권, 생활·안전, 공공성',
+    mainEmotions: '박탈감(소외), 분노(희생양), 불안(지역 소멸)',
+    summary: '국가 R&D가 지역 주민 삶과 너무 동떨어져 있고, "성장"이라는 이름으로 지역이 또다시 희생될 것을 깊이 우려함.'
   }
 
   return (
@@ -88,7 +93,17 @@ export default function Phase0Participant({ meeting, onBack }: Phase0Participant
         <div>
           <div className="card">
             <h2 className="card-title">AI Agent와의 사전 인터뷰</h2>
-            
+            <div style={{ 
+              padding: '0.5rem 0.75rem', 
+              background: '#fff9f0', 
+              border: '1px solid #ffd4a3', 
+              borderRadius: '4px',
+              marginBottom: '1rem',
+              fontSize: '0.85rem',
+              color: '#8b5a00'
+            }}>
+              ※ 현재는 스크립트 기반 데모입니다. 실제 시스템에서는 LLM이 참여자 입력을 요약·반영합니다.
+            </div>
             <div style={{ 
               minHeight: '400px', 
               maxHeight: '500px', 
@@ -137,7 +152,7 @@ export default function Phase0Participant({ meeting, onBack }: Phase0Participant
                 <textarea
                   className="form-textarea"
                   style={{ minHeight: '80px', marginBottom: '0.75rem' }}
-                  placeholder="답변을 입력하세요..."
+                  placeholder="(데모에서는 아래 예시 답변을 참고하세요)"
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   onKeyDown={(e) => {

@@ -11,6 +11,7 @@ type Meeting = {
 type Phase0Props = {
   meeting: Meeting | null
   onBack: () => void
+  onNext: () => void
 }
 
 type Message = {
@@ -18,57 +19,62 @@ type Message = {
   text: string
 }
 
+// TODO: 나중에 실제 LLM 응답으로 대체될 "데모용 복붙 텍스트" (issue-dependent copy)
 const mockInterviewFlow = [
   {
-    ai: '회의 전에 몇 가지 여쭤보겠습니다. K-택소노미 논의에서, 지금 가장 크게 느끼는 감정은 무엇인가요?',
-    participant: '솔직히 말하면 불안과 분노요. LNG랑 블루수소를 이렇게 서둘러 녹색분류체계에 넣으려는 게 이해가 안 돼요.'
+    ai: '회의 전에 몇 가지 여쭤보겠습니다. 국가 R&D 예산 분배 논의에서, 당신이 가장 크게 느끼는 감정은 무엇인가요?',
+    participant: '솔직히 박탈감과 분노가 큽니다. 우리 지역엔 응급실도 없고 학교 과학실도 엉망인데, 뉴스엔 맨날 AI·양자에 수조 원 투자했다고만 나오니까요.'
   },
   {
-    ai: '지금 말씀을 정리하면, 불안(좌초자산·그린워싱 리스크)과 분노(녹색 기준이 너무 빨리, 느슨하게 정해지는 것)가 섞여 있는 것으로 보입니다. 그 뒤에 있는 핵심 가치는 "제도 무결성"과 "국제 기준과의 정합성"으로 요약할 수 있을까요?',
-    participant: '네, 맞아요. K-택소노미는 우리나라 기후금융 제도의 첫 출발인데, 여기서부터 애매하게 가면 국내·국제 시장에서 신뢰를 잃을 수 있다고 생각해요.'
+    ai: '말씀하신 내용을 보면, 박탈감(지역 소외)과 분노(희생양이라는 느낌)가 섞여 있는 것 같습니다. 그 뒤에 있는 핵심 가치는 "형평성"과 "지역 생존권", "생활 안전"으로 요약할 수 있을까요?',
+    participant: '네, 맞습니다. 국가 R&D가 국민 세금이라면, 지역 주민들의 생존과 안전을 먼저 챙겨야 한다고 생각합니다.'
   },
   {
-    ai: '그럼 Expert님의 프로필을 이렇게 정리해보겠습니다: "국제적 신뢰와 제도 무결성을 중시하는 신중한 비판자. 특히 논란이 큰 LNG·블루수소를 무리하게 포함시키는 것이 장기적으로 좌초자산·그린워싱·시장 혼선 리스크를 키운다고 우려함." 이 요약이 Expert님의 자기 이해와 대체로 일치하나요?',
-    participant: '네, 이 정도면 제가 왜 이렇게 세게 반대하는지 잘 정리된 것 같아요.'
+    ai: '그럼 시민님의 프로필을 이렇게 정리해보겠습니다: "지역 생존권과 형평성을 중시하는 시민단체 활동가. 국가 R&D가 주민 삶과 동떨어져 있으며, 성장을 명분으로 지역이 또다시 희생될 것을 우려함." 이 요약이 본인의 생각과 일치하나요?',
+    participant: '네, 정확합니다. 우리가 겪는 현실이 잘 반영된 것 같아요.'
   }
 ]
 
-const emotionOptions = ['불안 😟', '분노 😠', '의심 🤔', '압박감 😣']
-const valueOptions = ['제도 무결성', '국제 정합성', '예방 원칙', '실행 가능성', '전환 속도']
+const emotionOptions = ['박탈감 😔', '분노 😠', '불안 😟', '무력감 😓']
+const valueOptions = ['형평성', '지역 생존권', '생활·안전', '균형 발전', '공공성']
 
-export default function Phase0({ meeting, onBack }: Phase0Props) {
+export default function Phase0({ meeting, onBack, onNext }: Phase0Props) {
   const [messages, setMessages] = useState<Message[]>([
     { speaker: 'ai', text: mockInterviewFlow[0].ai }
   ])
   const [currentStep, setCurrentStep] = useState(0)
   const [userInput, setUserInput] = useState('')
   const [interviewComplete, setInterviewComplete] = useState(false)
-  const [selectedEmotions, setSelectedEmotions] = useState<string[]>(['불안 😟', '분노 😠'])
-  const [selectedValues, setSelectedValues] = useState<string[]>(['제도 무결성', '국제 정합성'])
+  const [selectedEmotions, setSelectedEmotions] = useState<string[]>(['박탈감 😔', '분노 😠'])
+  const [selectedValues, setSelectedValues] = useState<string[]>(['형평성', '지역 생존권'])
 
   const handleSend = () => {
     if (!userInput.trim()) return
 
+    const nextStep = currentStep + 1
+    const isLastStep = nextStep >= mockInterviewFlow.length - 1
+
     const newMessages: Message[] = [
       ...messages,
       { speaker: 'participant', text: userInput },
-      { speaker: 'ai', text: mockInterviewFlow[currentStep + 1]?.ai || '' }
+      { speaker: 'ai', text: mockInterviewFlow[nextStep]?.ai || '' }
     ]
 
     setMessages(newMessages)
     setUserInput('')
-    setCurrentStep(currentStep + 1)
+    setCurrentStep(nextStep)
 
-    if (currentStep + 1 >= mockInterviewFlow.length - 1) {
+    if (isLastStep) {
       setInterviewComplete(true)
     }
   }
 
+// TODO: 나중에 실제 LLM 분석 결과로 대체될 데이터
   const mockProfileSummary = {
-    role: '시민사회·연구자 출신 위원 (K-택소노미 비판적 입장)',
-    coreValues: '제도 무결성, 국제 기준과의 정합성, 예방 원칙',
-    mainEmotions: '불안(좌초자산·그린워싱 리스크), 분노(기준의 조급함)',
-    summary: '국제적 신뢰와 제도 무결성을 중시하는 신중한 비판자. 특히 논란이 큰 LNG·블루수소를 무리하게 포함시키는 것이 장기적으로 좌초자산·그린워싱·시장 혼선 리스크를 키운다고 우려함.'
+    role: '지역 시민단체 활동가 (생활·안전 R&D 중시)',
+    coreValues: '형평성, 지역 생존권, 생활·안전, 공공성',
+    mainEmotions: '박탈감(소외), 분노(희생양), 불안(지역 소멸)',
+    summary: '국가 R&D가 지역 주민 삶과 너무 동떨어져 있고, "성장"이라는 이름으로 지역이 또다시 희생될 것을 깊이 우려함.'
   }
 
   const phaseGuide = {
@@ -93,6 +99,7 @@ export default function Phase0({ meeting, onBack }: Phase0Props) {
           ← Phase 선택으로
         </button>
         <h1 className="page-title">Phase 0 – 사전 프로필 입력</h1>
+        <p className="phase-desc">사전 프로필 입력 및 가치 분석 단계</p>
         {meeting && (
           <p className="page-subtitle">{meeting.name} - {meeting.agenda}</p>
         )}
@@ -106,6 +113,17 @@ export default function Phase0({ meeting, onBack }: Phase0Props) {
         <div>
           <div className="card">
             <h2 className="card-title">AI Agent와의 사전 인터뷰</h2>
+            <div style={{ 
+              padding: '0.5rem 0.75rem', 
+              background: '#fff9f0', 
+              border: '1px solid #ffd4a3', 
+              borderRadius: '4px',
+              marginBottom: '0.75rem',
+              fontSize: '0.85rem',
+              color: '#8b5a00'
+            }}>
+              ※ 현재는 스크립트 기반 데모입니다. 실제 시스템에서는 LLM이 참여자 입력을 요약·반영합니다.
+            </div>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
               {emotionOptions.map((option) => (
                 <button
@@ -195,7 +213,7 @@ export default function Phase0({ meeting, onBack }: Phase0Props) {
                 <textarea
                   className="form-textarea"
                   style={{ minHeight: '80px', marginBottom: '0.75rem' }}
-                  placeholder="답변을 입력하세요..."
+                  placeholder="(데모에서는 아래 예시 답변을 참고하세요)"
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -230,7 +248,7 @@ export default function Phase0({ meeting, onBack }: Phase0Props) {
         </div>
 
         {/* 우측: AI 프로필 요약 */}
-        <div>
+        <div className="analysis-panel">
           <PhaseGuide
             title="Phase 0 시연 가이드"
             purpose={phaseGuide.purpose}
@@ -276,15 +294,15 @@ export default function Phase0({ meeting, onBack }: Phase0Props) {
             <div>
               <strong style={{ fontSize: '0.9rem' }}>AI Agent용 메모:</strong>
               <ul style={{ marginTop: '0.5rem', paddingLeft: '1.5rem', fontSize: '0.9rem', color: '#666' }}>
-                <li>이 사람에게 질문할 때: "완전 제외"보다 "조건부 인정" 옵션을 함께 제시</li>
-                <li>의견 이끌어낼 때: 리스크 관리 관점에서 접근하면 수용 가능성 높음</li>
+                <li>이 사람에게 질문할 때: "희생"이라는 키워드를 공감하되 "정책적 대안"으로 유도</li>
+                <li>의견 이끌어낼 때: 생활 밀착형 사례를 들도록 요청</li>
               </ul>
             </div>
           </div>
         </div>
       </div>
 
-      <TabletCTA onPrev={onBack} nextDisabled nextLabel="다음 단계 → (Phase 선택에서 진행)" />
+      <TabletCTA onPrev={onBack} onNext={onNext} nextDisabled={false} nextLabel="다음 단계 → (Phase 1)" />
     </div>
   )
 }
