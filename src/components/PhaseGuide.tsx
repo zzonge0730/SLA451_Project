@@ -1,16 +1,12 @@
 type PhaseGuideProps = {
   title?: string
   purpose: string
-  inputs?: string[] // 선택적
-  outputs?: string[] // 선택적
   demoTips: string[]
 }
 
 export default function PhaseGuide({
   title = '시연 가이드',
   purpose,
-  inputs,
-  outputs,
   demoTips
 }: PhaseGuideProps) {
   return (
