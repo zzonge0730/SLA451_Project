@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { FaCheckCircle, FaExclamationTriangle, FaLightbulb, FaRobot } from 'react-icons/fa'
-import PhaseGuide from '../components/PhaseGuide'
 import TabletCTA from '../components/TabletCTA'
 
 type Meeting = {
@@ -117,15 +116,6 @@ export default function Phase3({ meeting, onBack, onNext }: Phase3Props) {
     setResponses((prev) => ({ ...prev, [key]: value }))
   }
 
-  const phaseGuide = {
-    purpose: '브릿지 문장과 요약이 원 의도를 잘 담았는지 검증·비평하고, 입장 변화를 성찰하도록 질문 세트를 자동 생성합니다.',
-    demoTips: [
-      '질문이 요약/번역에서 무엇이 희석됐는지 직접 묻도록 구성되었음을 강조',
-      '"너무 미화됨" 같은 선택지를 넣어 편향 감지 흐름 시연',
-      '생성된 질문을 바탕으로 실제 참여자 응답을 입력해 다음 단계로 연결 가능함을 설명'
-    ]
-  }
-
   return (
     <div>
       <div className="page-header">
@@ -173,12 +163,6 @@ export default function Phase3({ meeting, onBack, onNext }: Phase3Props) {
           ))}
         </div>
       )}
-
-      <PhaseGuide
-        title="Phase 3 시연 가이드"
-        purpose={phaseGuide.purpose}
-        demoTips={phaseGuide.demoTips}
-      />
 
       {/* 요약 정보 */}
       <div style={{ marginBottom: '2rem' }}>

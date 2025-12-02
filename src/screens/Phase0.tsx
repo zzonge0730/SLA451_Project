@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import PhaseGuide from '../components/PhaseGuide'
 import TabletCTA from '../components/TabletCTA'
 
 type Meeting = {
@@ -75,15 +74,6 @@ export default function Phase0({ meeting, onBack, onNext }: Phase0Props) {
     coreValues: '형평성, 지역 생존권, 생활·안전, 공공성',
     mainEmotions: '박탈감(소외), 분노(희생양), 불안(지역 소멸)',
     summary: '국가 R&D가 지역 주민 삶과 너무 동떨어져 있고, "성장"이라는 이름으로 지역이 또다시 희생될 것을 깊이 우려함.'
-  }
-
-  const phaseGuide = {
-    purpose: '사전 인터뷰를 통해 감정·가치·프로필을 명료화하고, 이후 단계의 맥락을 보정합니다.',
-    demoTips: [
-      '참여자 답변 입력 → AI가 즉시 요약/재질문',
-      '프로필 요약이 오른쪽 카드에 누적되는 흐름을 보여줌',
-      '"자발적 지침일수록 더 엄격" 같은 예민 포인트가 어떻게 보존되는지 강조'
-    ]
   }
 
   return (
@@ -247,11 +237,6 @@ export default function Phase0({ meeting, onBack, onNext }: Phase0Props) {
 
         {/* 우측: AI 프로필 요약 */}
         <div className="analysis-panel">
-          <PhaseGuide
-            title="Phase 0 시연 가이드"
-            purpose={phaseGuide.purpose}
-            demoTips={phaseGuide.demoTips}
-          />
           <div className="card">
             <h2 className="card-title">AI 프로필 요약</h2>
             

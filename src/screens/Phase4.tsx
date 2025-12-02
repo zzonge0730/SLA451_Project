@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { FaRobot, FaFileAlt } from 'react-icons/fa'
-import PhaseGuide from '../components/PhaseGuide'
 import TabletCTA from '../components/TabletCTA'
 
 type Meeting = {
@@ -64,15 +63,6 @@ const mockNextSteps = [
   '대국민 공청회를 통한 의견 수렴'
 ]
 
-const phaseGuide = {
-  purpose: '조건부 합의안을 문서 형태로 초안화하고, 남은 쟁점을 명시해 "마지못한 타협"임을 보여줍니다.',
-  demoTips: [
-    '각 조건에 기간/기준을 붙여 한시성·상향 가능성을 보여줌',
-    '이견이 남은 쟁점을 별도 박스로 고정해 완전 합의가 아님을 강조',
-    '다음 단계(시범운영/레이블 설계 등)로 연결되는 액션을 리스트업'
-  ]
-}
-
 export default function Phase4({ meeting, onBack, onNext }: Phase4Props) {
   const [openIdx, setOpenIdx] = useState<number | null>(0)
 
@@ -95,12 +85,6 @@ export default function Phase4({ meeting, onBack, onNext }: Phase4Props) {
           "성장 vs 분배"의 대립을 "3바스켓 구조 + 평가 개편"으로 부분적 공통 언어로 전환한 결과
         </p>
       </div>
-
-      <PhaseGuide
-        title="Phase 4 시연 가이드"
-        purpose={phaseGuide.purpose}
-        demoTips={phaseGuide.demoTips}
-      />
 
       <div className="grid grid-2">
         {/* 좌측: 합의안 조항 */}

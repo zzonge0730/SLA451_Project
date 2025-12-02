@@ -1,5 +1,4 @@
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer } from 'recharts'
-import PhaseGuide from '../components/PhaseGuide'
 import TabletCTA from '../components/TabletCTA'
 
 type Meeting = {
@@ -44,15 +43,6 @@ const radarData = [
 ]
 
 export default function Phase1({ meeting, onBack, onNext }: Phase1Props) {
-  const phaseGuide = {
-    purpose: '1라운드 발언을 감정·가치 지도와 집단 요약으로 바꿔 초기 마찰 지점을 드러냅니다.',
-    demoTips: [
-      '같은 목표를 공유하지만 우선순위가 다른 지점을 강조',
-      '"효율성(정부) vs 형평성(시민)"이라는 축을 카드/태그로 보여줌',
-      '레이더 차트로 가치 프레임을 시각적으로 비교'
-    ]
-  }
-
   return (
     <div>
       <div className="page-header">
@@ -159,15 +149,6 @@ export default function Phase1({ meeting, onBack, onNext }: Phase1Props) {
             시민/지역은 "형평성과 안전 보장 → 지역 생존 → 삶의 향상"을 우선시합니다.
           </p>
         </div>
-      </div>
-
-      {/* PhaseGuide는 우측에 유지 */}
-      <div className="analysis-panel" style={{ marginTop: '2rem' }}>
-        <PhaseGuide
-          title="Phase 1 시연 가이드"
-          purpose={phaseGuide.purpose}
-          demoTips={phaseGuide.demoTips}
-        />
       </div>
 
       <TabletCTA onPrev={onBack} onNext={onNext} nextDisabled={false} nextLabel="다음 단계 → (Phase 2)" />

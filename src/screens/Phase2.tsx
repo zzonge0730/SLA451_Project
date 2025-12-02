@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import PhaseGuide from '../components/PhaseGuide'
 import LogPanel from '../components/LogPanel'
 import TabletCTA from '../components/TabletCTA'
 
@@ -108,15 +107,6 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
     showToast(`브릿지 문장 ${idx + 1}번이 "${statusText}"되었습니다. AI가 학습 중...`)
   }
 
-  const phaseGuide = {
-    purpose: '논증을 구조화하고, 서로 다른 언어(리스크/전략)로 번역해 브릿지 문장을 제안합니다.',
-    demoTips: [
-      '좌측/우측 컬러 대비로 두 집단 논리를 분리',
-      '"숨은 전제"가 어떻게 드러나는지 강조',
-      '브릿지 문장은 토글이나 선택형으로 보여줄 수 있음을 언급'
-    ]
-  }
-
   return (
     <div>
       <div className="page-header">
@@ -133,12 +123,6 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
           <p className="page-subtitle">{meeting.name} - {meeting.agenda}</p>
         )}
       </div>
-
-      <PhaseGuide
-        title="Phase 2 시연 가이드"
-        purpose={phaseGuide.purpose}
-        demoTips={phaseGuide.demoTips}
-      />
 
       <div className="card" style={{ marginBottom: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
