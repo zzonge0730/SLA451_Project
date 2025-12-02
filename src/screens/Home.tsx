@@ -12,7 +12,7 @@ const mockMeetings: Meeting[] = [
   {
     id: '1',
     name: '경제산업분과 제11차 회의',
-    agenda: '에너지 전환 정책 수립'
+    agenda: '국가 R&D 예산 분배 원칙 수립'
   },
   {
     id: '2',
