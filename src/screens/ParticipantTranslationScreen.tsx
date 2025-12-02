@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { FaExchangeAlt, FaArrowRight } from 'react-icons/fa'
 
 type Meeting = {
