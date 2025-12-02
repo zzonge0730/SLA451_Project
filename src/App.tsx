@@ -11,6 +11,7 @@ import Phase0Participant from './screens/Phase0Participant'
 import ParticipantLiveScreen from './screens/ParticipantLiveScreen'
 import ParticipantTranslationScreen from './screens/ParticipantTranslationScreen'
 import ParticipantConsensusScreen from './screens/ParticipantConsensusScreen'
+import WaitingOverlay from './components/WaitingOverlay'
 
 type Screen = 
   | 'home'
@@ -37,6 +38,8 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home')
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null)
   const [userRole, setUserRole] = useState<UserRole>('moderator')
+  const [isWaiting, setIsWaiting] = useState(false)
+  const [hasReceivedPhaseChange, setHasReceivedPhaseChange] = useState(false)
   
   // 📡 브로드캐스트 채널 생성 (탭 간 통신용)
   const channelRef = useRef<BroadcastChannel | null>(null)
@@ -51,6 +54,8 @@ function App() {
         const { type, phase, meeting } = event.data
         
         if (type === 'PHASE_CHANGE') {
+          setHasReceivedPhaseChange(true)
+          setIsWaiting(false)
           // 참가자는 페르소나별 필요한 화면만 표시
           if (phase === 0) {
             setCurrentScreen('phase-0-participant')
@@ -78,6 +83,17 @@ function App() {
       }
     }
   }, [])
+  
+  // 참가자 모드에서 phase-selector 이후 대기 상태 설정
+  useEffect(() => {
+    if (userRole === 'participant' && currentScreen === 'phase-selector') {
+      setIsWaiting(true)
+      setHasReceivedPhaseChange(false)
+    } else if (hasReceivedPhaseChange || currentScreen === 'home') {
+      // 홈 화면으로 돌아가면 대기 상태 해제
+      setIsWaiting(false)
+    }
+  }, [userRole, currentScreen, hasReceivedPhaseChange])
 
   const handleMeetingSelect = (meeting: Meeting, role: UserRole) => {
     setSelectedMeeting(meeting)
@@ -113,6 +129,8 @@ function App() {
     setCurrentScreen('home')
     setSelectedMeeting(null)
     setUserRole('moderator')
+    setIsWaiting(false)
+    setHasReceivedPhaseChange(false)
   }
 
   const handleBackToPhaseSelector = () => {
@@ -219,6 +237,29 @@ function App() {
         <ParticipantConsensusScreen
           meeting={selectedMeeting}
           onBack={handleBackToPhaseSelector}
+        />
+      )}
+      
+      {/* 참가자 대기 화면 */}
+      {userRole === 'participant' && isWaiting && !hasReceivedPhaseChange && (
+        <WaitingOverlay 
+          message="진행자 신호를 기다리는 중..."
+          showRequestButton={true}
+          onRequest={() => {
+            if (channelRef.current) {
+              channelRef.current.postMessage({ type: 'PARTICIPANT_PING', message: '신호 요청' })
+            }
+          }}
+          onBack={handleBackToHome}
+          onSkip={() => {
+            // 데모용: 대기 상태 스킵하고 자동으로 다음 화면으로 이동
+            setIsWaiting(false)
+            setHasReceivedPhaseChange(true)
+            // Phase 0이면 phase-0-participant로, 아니면 participant-live로
+            if (currentScreen === 'phase-selector') {
+              setCurrentScreen('phase-0-participant')
+            }
+          }}
         />
       )}
     </div>

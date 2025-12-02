@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import LogPanel from '../components/LogPanel'
 import TabletCTA from '../components/TabletCTA'
 
@@ -95,6 +95,56 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
   })
   const [showLogs, setShowLogs] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [showOriginal, setShowOriginal] = useState(false)
+  const [showKeywords, setShowKeywords] = useState(false)
+  const [translationText, setTranslationText] = useState('')
+  const [skipAnimation, setSkipAnimation] = useState(false)
+  
+  // 번역 과정 시각화
+  useEffect(() => {
+    if (skipAnimation) {
+      setIsLoading(false)
+      setShowOriginal(true)
+      setShowKeywords(true)
+      setTranslationText(mockTranslationExpertToOfficial.risks[0].content)
+      return
+    }
+
+    // 1초 후: 원문 표시
+    const timer1 = setTimeout(() => {
+      setIsLoading(false)
+      setShowOriginal(true)
+    }, 1000)
+
+    // 2초 후: 키워드 하이라이트
+    const timer2 = setTimeout(() => {
+      setShowKeywords(true)
+    }, 2000)
+
+    // 3초 후: 번역문 타이핑 효과
+    const timer3 = setTimeout(() => {
+      typewriterEffect(mockTranslationExpertToOfficial.risks[0].content, setTranslationText)
+    }, 3000)
+
+    return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+      clearTimeout(timer3)
+    }
+  }, [skipAnimation])
+
+  const typewriterEffect = (text: string, setter: (value: string) => void) => {
+    let index = 0
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        setter(text.substring(0, index + 1))
+        index++
+      } else {
+        clearInterval(interval)
+      }
+    }, 20) // 타이핑 속도
+  }
   
   const showToast = (message: string) => {
     setToastMessage(message)
@@ -218,42 +268,115 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
 
       {/* Section 2: AI Bridge (자동 번역) */}
       <div style={{ marginBottom: '2rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.5rem', color: '#666' }}>
-          ▼ AI Bridge (자동 번역)
+        <div style={{ 
+          textAlign: 'center', 
+          marginBottom: '1rem', 
+          fontSize: '1.5rem', 
+          color: '#666',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <span style={{ flex: 1 }}>▼ AI Bridge (자동 번역)</span>
+          {isLoading && (
+            <button
+              className="btn"
+              onClick={() => setSkipAnimation(true)}
+              style={{
+                fontSize: '0.85rem',
+                padding: '0.4rem 0.8rem',
+                background: '#fff',
+                border: '1px solid #ddd'
+              }}
+            >
+              건너뛰기
+            </button>
+          )}
         </div>
         <div className="card">
-          <h2 className="card-title">MediR&D의 번역 결과</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 className="card-title" style={{ marginBottom: 0 }}>MediR&D의 번역 결과</h2>
+            {isLoading && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4a90e2' }}>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid #4a90e2',
+                  borderTop: '2px solid transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                <span style={{ fontSize: '0.9rem' }}>AI가 양측의 발언을 분석 중입니다...</span>
+              </div>
+            )}
+          </div>
           <div className="grid grid-2" style={{ marginTop: '1rem', gap: '1.5rem' }}>
             {/* 좌측: 시민 발언 → 정부가 이해할 수 있는 언어로 */}
             <div>
               <div style={{ 
                 padding: '1rem', 
-                background: '#fff3e0', 
+                background: '#FBE9E7', 
                 borderRadius: '6px',
-                border: '1px solid #ffb74d'
+                border: '1px solid #FFCCBC'
               }}>
             <h3 style={{ 
               marginBottom: '1rem', 
-              color: '#e65100', 
+              color: '#8D6E63', 
               fontSize: '1rem',
               fontWeight: '600'
             }}>
               시민 → 정부 번역 (리스크 관리 언어)
             </h3>
-                {mockTranslationExpertToOfficial.risks.map((risk, idx) => (
-                  <div key={idx} style={{ marginBottom: '1rem' }}>
-                    <strong style={{ fontSize: '0.9rem', color: '#d32f2f' }}>
-                      {risk.type}:
-                    </strong>
-                    <p style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                      {risk.content}
-                    </p>
+                {isLoading ? (
+                  <div>
+                    <div style={{ 
+                      height: '20px', 
+                      background: '#e0e0e0', 
+                      borderRadius: '4px',
+                      marginBottom: '0.5rem',
+                      animation: 'pulse 1.5s ease-in-out infinite'
+                    }} />
+                    <div style={{ 
+                      height: '60px', 
+                      background: '#e0e0e0', 
+                      borderRadius: '4px',
+                      marginBottom: '1rem',
+                      animation: 'pulse 1.5s ease-in-out infinite'
+                    }} />
                   </div>
-                ))}
-                <div className="divider" style={{ margin: '1rem 0' }}></div>
-                <p style={{ color: '#555', fontSize: '0.9rem', lineHeight: '1.6', fontStyle: 'italic' }}>
-                  {mockTranslationExpertToOfficial.conclusion}
-                </p>
+                ) : showOriginal ? (
+                  <>
+                    {mockTranslationExpertToOfficial.risks.map((risk, idx) => {
+                      const isFirst = idx === 0
+                      const displayText = isFirst && translationText ? translationText : risk.content
+                      const keywords = ['리스크', '정책', '지지', '갈등', '경쟁력']
+                      const highlightText = (text: string) => {
+                        if (!showKeywords) return text
+                        let highlighted = text
+                        keywords.forEach(keyword => {
+                          const regex = new RegExp(`(${keyword})`, 'g')
+                          highlighted = highlighted.replace(regex, `<mark style="background: #fff9c4; padding: 2px 4px; border-radius: 3px;">$1</mark>`)
+                        })
+                        return highlighted
+                      }
+                      return (
+                        <div key={idx} style={{ marginBottom: '1rem' }}>
+                          <strong style={{ fontSize: '0.9rem', color: '#8D6E63' }}>
+                            {risk.type}:
+                          </strong>
+                          <p 
+                            style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.9rem', lineHeight: '1.5' }}
+                            dangerouslySetInnerHTML={{ __html: highlightText(displayText) }}
+                          />
+                        </div>
+                      )
+                    })}
+                    <div className="divider" style={{ margin: '1rem 0' }}></div>
+                    <p style={{ color: '#555', fontSize: '0.9rem', lineHeight: '1.6', fontStyle: 'italic' }}>
+                      {mockTranslationExpertToOfficial.conclusion}
+                    </p>
+                  </>
+                ) : null}
               </div>
             </div>
 
@@ -261,13 +384,13 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
             <div>
               <div style={{ 
                 padding: '1rem', 
-                background: '#e8eaf6', 
+                background: '#ECEFF1', 
                 borderRadius: '6px',
-                border: '1px solid #7986cb'
+                border: '1px solid #CFD8DC'
               }}>
             <h3 style={{ 
               marginBottom: '1rem', 
-              color: '#283593', 
+              color: '#546E7A', 
               fontSize: '1rem',
               fontWeight: '600'
             }}>
@@ -275,7 +398,7 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
             </h3>
                 {mockTranslationOfficialToExpert.strategy.map((item, idx) => (
                   <div key={idx} style={{ marginBottom: '1rem' }}>
-                    <strong style={{ fontSize: '0.9rem', color: '#1976d2' }}>
+                    <strong style={{ fontSize: '0.9rem', color: '#546E7A' }}>
                       {item.step}:
                     </strong>
                     <p style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.9rem', lineHeight: '1.5' }}>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { FaCheckCircle, FaQuestionCircle, FaLightbulb } from 'react-icons/fa'
+import StepIndicator from '../components/StepIndicator'
 
 type Meeting = {
   id: string
@@ -25,33 +26,80 @@ const mockMyArgumentSummary = {
   ]
 }
 
-const mockMyVerifyQuestions = [
-  '내가 제시한 "점진적 전환"의 구체적 기준과 시기는 무엇인가요?',
-  '사회적 안전망 구축을 위한 예산과 정책의 구체적 내용은 무엇인가요?',
-  '기존 산업 종사자들의 재교육 프로그램은 어떻게 운영되나요?',
-  '지역 경제 보호를 위한 모니터링 체계는 무엇인가요?',
-  '생활·안전 R&D 최소 비율의 구체적 수치는 어떻게 정할 수 있을까요?'
+// 객관식 질문 (슬라이더)
+const mockVerifyQuestions = [
+  {
+    question: '이 번역이 내 의도를 정확하게 반영하나요?',
+    type: 'slider' as const,
+    min: 1,
+    max: 5,
+    labels: ['전혀 아님', '약간 아님', '보통', '대체로 맞음', '완전히 맞음']
+  },
+  {
+    question: '내 논증의 핵심이 잘 전달되었나요?',
+    type: 'slider' as const,
+    min: 1,
+    max: 5,
+    labels: ['전혀 아님', '약간 아님', '보통', '대체로 맞음', '완전히 맞음']
+  },
+  {
+    question: '이 번역에서 빠진 중요한 부분이 있나요?',
+    type: 'slider' as const,
+    min: 1,
+    max: 5,
+    labels: ['많이 빠짐', '약간 빠짐', '보통', '거의 다 있음', '완벽함']
+  }
 ]
 
 const mockCritiqueQuestions = [
-  '내 논증에서 놓치고 있는 부분은 무엇일까요?',
-  '정부의 "경쟁력 강화" 논리와 내 "형평성" 논리를 어떻게 절충할 수 있을까요?',
-  '내가 제시한 해결책이 실현 가능한가요?',
-  '장기적으로 이 정책이 미래 세대에게 미칠 영향은 무엇인가요?',
-  '전략기술 투자와 생활·안전 R&D의 균형을 어떻게 보장할 수 있을까요?'
+  {
+    question: '내 논증에서 놓치고 있는 부분이 있나요?',
+    type: 'ox' as const,
+    options: ['있음', '없음']
+  },
+  {
+    question: '정부의 "경쟁력 강화" 논리와 내 "형평성" 논리를 절충할 수 있나요?',
+    type: 'ox' as const,
+    options: ['가능함', '불가능함']
+  },
+  {
+    question: '내가 제시한 해결책이 실현 가능한가요?',
+    type: 'ox' as const,
+    options: ['가능함', '불가능함']
+  },
+  {
+    question: '전략기술 투자와 생활·안전 R&D의 균형을 보장할 수 있나요?',
+    type: 'ox' as const,
+    options: ['가능함', '불가능함']
+  }
 ]
 
-const mockReflectionQuestions = [
-  '오늘 논의를 통해 내 입장이 어디까지 이동했나요?',
-  '남아있는 가장 큰 우려는 무엇인가요?',
-  '이 합의안이 실제로 실행될 수 있다고 생각하시나요?'
+// 키워드 선택 질문
+const mockKeywordQuestions = [
+  {
+    question: '남아있는 가장 큰 우려는 무엇인가요? (복수 선택 가능)',
+    type: 'keywords' as const,
+    keywords: ['지역소멸', '예산부족', '실행미흡', '평가체계', '인력유출', '기타']
+  }
 ]
+
+// 주관식 질문 (하나만)
+const mockReflectionQuestion = '오늘 논의를 통해 내 입장이 어디까지 이동했는지 한 줄로 적어주세요.'
 
 export default function Phase3Participant({ meeting, onBack, onNext }: Phase3ParticipantProps) {
-  const [responses, setResponses] = useState<Record<string, string>>({})
+  const [responses, setResponses] = useState<Record<string, string | number | string[]>>({})
   const [isComplete, setIsComplete] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const channelRef = useRef<BroadcastChannel | null>(null)
+  
+  // 슬라이더 기본값은 3 (중립)
+  useEffect(() => {
+    mockVerifyQuestions.forEach((_, idx) => {
+      if (!responses[`verify-${idx}`]) {
+        setResponses(prev => ({ ...prev, [`verify-${idx}`]: 3 }))
+      }
+    })
+  }, [])
   
   useEffect(() => {
     if (typeof BroadcastChannel !== 'undefined') {
@@ -73,8 +121,16 @@ export default function Phase3Participant({ meeting, onBack, onNext }: Phase3Par
     }
   }, [toastMessage])
   
-  const handleResponseChange = (key: string, value: string) => {
+  const handleResponseChange = (key: string, value: string | number | string[]) => {
     setResponses({ ...responses, [key]: value })
+  }
+  
+  const handleKeywordToggle = (key: string, keyword: string) => {
+    const current = (responses[key] as string[]) || []
+    const updated = current.includes(keyword)
+      ? current.filter(k => k !== keyword)
+      : [...current, keyword]
+    handleResponseChange(key, updated)
   }
   
   const handleSubmit = () => {
@@ -99,10 +155,14 @@ export default function Phase3Participant({ meeting, onBack, onNext }: Phase3Par
     }
   }
   
-  const allVerifyAnswered = mockMyVerifyQuestions.every((_, idx) => responses[`verify-${idx}`]?.trim())
-  const allCritiqueAnswered = mockCritiqueQuestions.every((_, idx) => responses[`critique-${idx}`]?.trim())
-  const allReflectionAnswered = mockReflectionQuestions.every((_, idx) => responses[`reflection-${idx}`]?.trim())
-  const canSubmit = allVerifyAnswered && allCritiqueAnswered && allReflectionAnswered
+  const allVerifyAnswered = mockVerifyQuestions.every((_, idx) => responses[`verify-${idx}`] !== undefined)
+  const allCritiqueAnswered = mockCritiqueQuestions.every((_, idx) => responses[`critique-${idx}`] !== undefined)
+  const keywordsAnswered = mockKeywordQuestions.every((_, idx) => {
+    const keywords = responses[`keywords-${idx}`] as string[]
+    return keywords && keywords.length > 0
+  })
+  const reflectionAnswered = responses['reflection'] && (responses['reflection'] as string).trim()
+  const canSubmit = allVerifyAnswered && allCritiqueAnswered && keywordsAnswered && reflectionAnswered
   
   return (
     <div>
@@ -119,6 +179,18 @@ export default function Phase3Participant({ meeting, onBack, onNext }: Phase3Par
         {meeting && (
           <p className="page-subtitle">{meeting.name} - {meeting.agenda}</p>
         )}
+        <StepIndicator
+          steps={['발언 입력', '재구성 확인', '번역 비교', '합의 확인']}
+          current={3}
+        />
+        <div className="card" style={{ background: '#ECEFF1', borderColor: '#CFD8DC', marginBottom: '1.5rem' }}>
+          <h3 style={{ marginBottom: '0.5rem', color: '#263238' }}>지금 하실 일</h3>
+          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#546E7A', lineHeight: '1.7' }}>
+            <li>슬라이더와 O/X로 번역 정확도와 균형감을 빠르게 평가하세요.</li>
+            <li>남은 우려 키워드를 선택하고, 마지막으로 한 줄 성찰을 남깁니다.</li>
+            <li>제출하면 주관자 화면 응답 현황에 바로 반영됩니다.</li>
+          </ul>
+        </div>
       </div>
 
       {/* 1. 내 논증 요약 */}
@@ -153,7 +225,7 @@ export default function Phase3Participant({ meeting, onBack, onNext }: Phase3Par
       </div>
 
       <div className="grid grid-2" style={{ gap: '1.5rem' }}>
-        {/* 좌측: Verify 질문 */}
+        {/* 좌측: Verify 질문 (슬라이더) */}
         <div>
           <div className="card" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -161,33 +233,72 @@ export default function Phase3Participant({ meeting, onBack, onNext }: Phase3Par
               <h2 className="card-title" style={{ marginBottom: 0 }}>검증 질문</h2>
             </div>
             <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
-              내가 제시한 논증을 검증하기 위한 질문들입니다.
+              슬라이더로 답변해주세요 (기본값: 중립)
             </p>
-            {mockMyVerifyQuestions.map((question, idx) => (
-              <div key={idx} style={{ marginBottom: '1.5rem' }}>
-                <p style={{ 
-                  color: '#555', 
-                  fontSize: '0.95rem', 
-                  lineHeight: '1.6', 
-                  marginBottom: '0.5rem',
-                  fontWeight: '500'
-                }}>
-                  {idx + 1}. {question}
-                </p>
-                <textarea
-                  className="form-textarea"
-                  style={{ minHeight: '100px', width: '100%' }}
-                  placeholder="답변을 입력하세요..."
-                  value={responses[`verify-${idx}`] || ''}
-                  onChange={(e) => handleResponseChange(`verify-${idx}`, e.target.value)}
-                  disabled={isComplete}
-                />
-              </div>
-            ))}
+            {mockVerifyQuestions.map((q, idx) => {
+              const value = (responses[`verify-${idx}`] as number) || 3
+              return (
+                <div key={idx} style={{ marginBottom: '2rem' }}>
+                  <p style={{ 
+                    color: '#555', 
+                    fontSize: '0.95rem', 
+                    lineHeight: '1.6', 
+                    marginBottom: '1rem',
+                    fontWeight: '500'
+                  }}>
+                    {idx + 1}. {q.question}
+                  </p>
+                  <input
+                    type="range"
+                    min={q.min}
+                    max={q.max}
+                    value={value}
+                    onChange={(e) => handleResponseChange(`verify-${idx}`, parseInt(e.target.value))}
+                    disabled={isComplete}
+                    style={{
+                      width: '100%',
+                      height: '8px',
+                      borderRadius: '4px',
+                      background: `linear-gradient(to right, #e0e0e0 0%, #e0e0e0 ${(value - 1) * 25}%, #455A64 ${(value - 1) * 25}%, #455A64 100%)`,
+                      outline: 'none',
+                      cursor: isComplete ? 'not-allowed' : 'pointer'
+                    }}
+                  />
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    marginTop: '0.5rem',
+                    fontSize: '0.85rem',
+                    color: '#666'
+                  }}>
+                    {q.labels.map((label, labelIdx) => (
+                      <span 
+                        key={labelIdx}
+                        style={{
+                          fontWeight: labelIdx + 1 === value ? '600' : '400',
+                          color: labelIdx + 1 === value ? '#1565c0' : '#666'
+                        }}
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                  <div style={{ 
+                    textAlign: 'center', 
+                    marginTop: '0.5rem',
+                    fontSize: '1.2rem',
+                    fontWeight: '600',
+                    color: '#1565c0'
+                  }}>
+                    {value}점
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
-        {/* 우측: Critique & Reflection 질문 */}
+        {/* 우측: Critique (O/X) & Keywords & Reflection (주관식 하나) */}
         <div>
           <div className="card" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -195,60 +306,114 @@ export default function Phase3Participant({ meeting, onBack, onNext }: Phase3Par
               <h2 className="card-title" style={{ marginBottom: 0 }}>비평 질문</h2>
             </div>
             <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
-              내 논증을 비판적으로 검토하기 위한 질문들입니다.
+              O/X로 답변해주세요
             </p>
-            {mockCritiqueQuestions.map((question, idx) => (
-              <div key={idx} style={{ marginBottom: '1.5rem' }}>
-                <p style={{ 
-                  color: '#555', 
-                  fontSize: '0.95rem', 
-                  lineHeight: '1.6', 
-                  marginBottom: '0.5rem',
-                  fontWeight: '500'
-                }}>
-                  {idx + 1}. {question}
-                </p>
-                <textarea
-                  className="form-textarea"
-                  style={{ minHeight: '100px', width: '100%' }}
-                  placeholder="답변을 입력하세요..."
-                  value={responses[`critique-${idx}`] || ''}
-                  onChange={(e) => handleResponseChange(`critique-${idx}`, e.target.value)}
-                  disabled={isComplete}
-                />
-              </div>
-            ))}
+            {mockCritiqueQuestions.map((q, idx) => {
+              const selected = responses[`critique-${idx}`] as string
+              return (
+                <div key={idx} style={{ marginBottom: '1.5rem' }}>
+                  <p style={{ 
+                    color: '#555', 
+                    fontSize: '0.95rem', 
+                    lineHeight: '1.6', 
+                    marginBottom: '0.75rem',
+                    fontWeight: '500'
+                  }}>
+                    {idx + 1}. {q.question}
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {q.options.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => !isComplete && handleResponseChange(`critique-${idx}`, option)}
+                        disabled={isComplete}
+                        style={{
+                          flex: 1,
+                          padding: '0.75rem 1rem',
+                          fontSize: '0.9rem',
+                          fontWeight: '500',
+                          borderRadius: '6px',
+                          border: `2px solid ${selected === option ? '#ff9800' : '#ddd'}`,
+                          background: selected === option ? '#fff3e0' : '#fff',
+                          color: selected === option ? '#e65100' : '#666',
+                          cursor: isComplete ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
+          {/* 키워드 선택 */}
+          {mockKeywordQuestions.map((q, idx) => {
+            const selectedKeywords = (responses[`keywords-${idx}`] as string[]) || []
+            return (
+              <div key={idx} className="card" style={{ marginBottom: '1.5rem' }}>
+                <h3 className="card-title" style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>
+                  {q.question}
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {q.keywords.map((keyword) => {
+                    const isSelected = selectedKeywords.includes(keyword)
+                    return (
+                      <button
+                        key={keyword}
+                        onClick={() => !isComplete && handleKeywordToggle(`keywords-${idx}`, keyword)}
+                        disabled={isComplete}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          fontSize: '0.9rem',
+                          borderRadius: '20px',
+                          border: `2px solid ${isSelected ? '#4caf50' : '#ddd'}`,
+                          background: isSelected ? '#e8f5e9' : '#fff',
+                          color: isSelected ? '#2e7d32' : '#666',
+                          cursor: isComplete ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s',
+                          fontWeight: isSelected ? '600' : '400'
+                        }}
+                      >
+                        {keyword}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+
+          {/* 성찰 질문 (주관식 하나만) */}
           <div className="card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
               <FaCheckCircle style={{ color: '#4caf50', fontSize: '1.2rem' }} />
               <h2 className="card-title" style={{ marginBottom: 0 }}>성찰 질문</h2>
             </div>
             <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
-              오늘 논의를 통해 생각이 바뀐 점이나 남은 질문을 적어보세요.
+              한 줄로 답변해주세요
             </p>
-            {mockReflectionQuestions.map((question, idx) => (
-              <div key={idx} style={{ marginBottom: '1.5rem' }}>
-                <p style={{ 
-                  color: '#555', 
-                  fontSize: '0.95rem', 
-                  lineHeight: '1.6', 
-                  marginBottom: '0.5rem',
-                  fontWeight: '500'
-                }}>
-                  {idx + 1}. {question}
-                </p>
-                <textarea
-                  className="form-textarea"
-                  style={{ minHeight: '100px', width: '100%' }}
-                  placeholder="답변을 입력하세요..."
-                  value={responses[`reflection-${idx}`] || ''}
-                  onChange={(e) => handleResponseChange(`reflection-${idx}`, e.target.value)}
-                  disabled={isComplete}
-                />
-              </div>
-            ))}
+            <div>
+              <p style={{ 
+                color: '#555', 
+                fontSize: '0.95rem', 
+                lineHeight: '1.6', 
+                marginBottom: '0.75rem',
+                fontWeight: '500'
+              }}>
+                {mockReflectionQuestion}
+              </p>
+              <textarea
+                className="form-textarea"
+                style={{ minHeight: '100px', width: '100%' }}
+                placeholder="한 줄로 답변을 입력하세요..."
+                value={(responses['reflection'] as string) || ''}
+                onChange={(e) => handleResponseChange('reflection', e.target.value)}
+                disabled={isComplete}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -313,4 +478,3 @@ export default function Phase3Participant({ meeting, onBack, onNext }: Phase3Par
     </div>
   )
 }
-

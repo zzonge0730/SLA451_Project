@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { FaMicrophone, FaCheckCircle, FaTimesCircle, FaExchangeAlt } from 'react-icons/fa'
+import StepIndicator from '../components/StepIndicator'
 
 type Meeting = {
   id: string
@@ -37,6 +38,12 @@ export default function ParticipantLiveScreen({ meeting, onBack, onNext }: Parti
   const [isRecording, setIsRecording] = useState(false)
   const [showRestructured, setShowRestructured] = useState(false)
   const [intentConfirmed, setIntentConfirmed] = useState<boolean | null>(null)
+  const [aiProgress, setAiProgress] = useState(0)
+  const aiSteps = [
+    '핵심 가치 분석 중...',
+    '정책/사회 리스크 추출 중...',
+    '전문가가 이해할 언어로 변환 중...'
+  ]
   const channelRef = useRef<BroadcastChannel | null>(null)
   
   useEffect(() => {
@@ -61,6 +68,13 @@ export default function ParticipantLiveScreen({ meeting, onBack, onNext }: Parti
   
   const handleRestructure = () => {
     setShowRestructured(true)
+    setIntentConfirmed(null)
+    setAiProgress(0)
+    aiSteps.forEach((_, idx) => {
+      setTimeout(() => {
+        setAiProgress(idx + 1)
+      }, (idx + 1) * 700)
+    })
     // 주관자에게 발언 알림
     if (channelRef.current) {
       channelRef.current.postMessage({ 
@@ -69,6 +83,13 @@ export default function ParticipantLiveScreen({ meeting, onBack, onNext }: Parti
         statement: userStatement
       })
     }
+  }
+
+  const handleRestartInput = () => {
+    setUserStatement('')
+    setShowRestructured(false)
+    setIntentConfirmed(null)
+    setAiProgress(0)
   }
   
   const handleIntentConfirm = (confirmed: boolean) => {
@@ -97,6 +118,18 @@ export default function ParticipantLiveScreen({ meeting, onBack, onNext }: Parti
         {meeting && (
           <p className="page-subtitle">{meeting.name} - {meeting.agenda}</p>
         )}
+        <StepIndicator
+          steps={['발언 입력', '재구성 확인', '번역 비교', '합의 확인']}
+          current={1}
+        />
+        <div className="card" style={{ background: '#ECEFF1', borderColor: '#CFD8DC', marginBottom: '1.5rem' }}>
+          <h3 style={{ marginBottom: '0.5rem', color: '#263238' }}>지금 하실 일</h3>
+          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#546E7A', lineHeight: '1.7' }}>
+            <li>발언하기 버튼을 눌러 말을 입력하거나 예시 발언을 자동 입력하세요.</li>
+            <li>AI가 재구성한 문장이 내 의도와 맞는지 확인합니다.</li>
+            <li>맞으면 일치함, 다르면 다시 표현할 수 있도록 선택하세요.</li>
+          </ul>
+        </div>
         <div style={{ 
           marginTop: '0.5rem', 
           padding: '0.5rem 0.75rem', 
@@ -174,6 +207,31 @@ export default function ParticipantLiveScreen({ meeting, onBack, onNext }: Parti
                 </h2>
               </div>
               <div style={{ 
+                padding: '0.75rem 1rem', 
+                background: '#ECEFF1', 
+                borderRadius: '6px',
+                marginBottom: '1rem',
+                border: '1px solid #CFD8DC',
+                display: 'flex',
+                gap: '0.75rem',
+                flexWrap: 'wrap'
+              }}>
+                {aiSteps.map((label, idx) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <div style={{
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '50%',
+                      background: aiProgress > idx ? '#455A64' : '#CFD8DC',
+                      border: `1px solid ${aiProgress > idx ? '#263238' : '#CFD8DC'}`
+                    }} />
+                    <span style={{ color: aiProgress > idx ? '#263238' : '#78909C', fontSize: '0.9rem' }}>
+                      {label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ 
                 padding: '1rem', 
                 background: 'white', 
                 borderRadius: '6px',
@@ -187,8 +245,11 @@ export default function ParticipantLiveScreen({ meeting, onBack, onNext }: Parti
               
               {intentConfirmed === null ? (
                 <div>
-                  <p style={{ marginBottom: '0.75rem', color: '#555', fontSize: '0.9rem' }}>
+                  <p style={{ marginBottom: '0.5rem', color: '#555', fontSize: '0.9rem', fontWeight: 600 }}>
                     이 재구성이 내 의도와 일치하나요?
+                  </p>
+                  <p className="text-muted" style={{ marginBottom: '0.75rem', fontSize: '0.85rem' }}>
+                    일치함 = AI 해석이 내 의도와 같음 / 다음 단계 = 다시 표현할 기회를 요청
                   </p>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button
@@ -205,7 +266,7 @@ export default function ParticipantLiveScreen({ meeting, onBack, onNext }: Parti
                       style={{ flex: 1, background: '#fff', borderColor: '#f44336', color: '#f44336' }}
                     >
                       <FaTimesCircle style={{ marginRight: '0.5rem' }} />
-                      다름
+                      다음 단계(다시 표현)
                     </button>
                   </div>
                 </div>
@@ -227,6 +288,24 @@ export default function ParticipantLiveScreen({ meeting, onBack, onNext }: Parti
                       {intentConfirmed ? '✓ 의도 확인 완료' : '⚠ 수정 요청 전송됨'}
                     </p>
                   </div>
+                  {intentConfirmed === false && (
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => handleRestructure()}
+                        style={{ flex: 1 }}
+                      >
+                        AI 재구성 다시 요청
+                      </button>
+                      <button
+                        className="btn"
+                        onClick={handleRestartInput}
+                        style={{ flex: 1 }}
+                      >
+                        발언 다시 입력하기
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

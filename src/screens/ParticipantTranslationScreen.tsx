@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { FaExchangeAlt, FaArrowRight } from 'react-icons/fa'
+import StepIndicator from '../components/StepIndicator'
 
 type Meeting = {
   id: string
@@ -76,6 +77,18 @@ export default function ParticipantTranslationScreen({ meeting, onBack, onNext }
         {meeting && (
           <p className="page-subtitle">{meeting.name} - {meeting.agenda}</p>
         )}
+        <StepIndicator
+          steps={['발언 입력', '재구성 확인', '번역 비교', '합의 확인']}
+          current={3}
+        />
+        <div className="card" style={{ background: '#ECEFF1', borderColor: '#CFD8DC', marginBottom: '1.5rem' }}>
+          <h3 style={{ marginBottom: '0.5rem', color: '#263238' }}>지금 하실 일</h3>
+          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#546E7A', lineHeight: '1.7' }}>
+            <li>내 발언과 상대 발언을 나란히 보며 번역이 어떻게 되었는지 확인하세요.</li>
+            <li>AI가 각 발언을 정책/시민 언어로 바꾼 이유가 이해되는지 살펴봅니다.</li>
+            <li>이해되면 합의문 확인 단계로 이동합니다.</li>
+          </ul>
+        </div>
         <div style={{ 
           marginTop: '0.5rem', 
           padding: '0.5rem 0.75rem', 
@@ -94,7 +107,7 @@ export default function ParticipantTranslationScreen({ meeting, onBack, onNext }
         <div>
           <div className="card" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <FaExchangeAlt style={{ color: '#4a90e2', fontSize: '1.2rem' }} />
+              <FaExchangeAlt style={{ color: '#455A64', fontSize: '1.2rem' }} />
               <h2 className="card-title" style={{ marginBottom: 0 }}>
                 {mockTranslationMyToOfficial.title}
               </h2>
@@ -115,13 +128,13 @@ export default function ParticipantTranslationScreen({ meeting, onBack, onNext }
             
             <div style={{ 
               padding: '0.75rem', 
-              background: '#f0f7ff', 
+              background: '#ECEFF1', 
               borderRadius: '6px',
               marginBottom: '1rem',
-              border: '1px solid #b8dce8'
+              border: '1px solid #CFD8DC'
             }}>
-              <p style={{ fontSize: '0.85rem', color: '#1565c0', marginBottom: '0.5rem', fontWeight: '500' }}>AI 재구성:</p>
-              <p style={{ color: '#2c5f7c', lineHeight: '1.6', fontSize: '0.9rem' }}>
+              <p style={{ fontSize: '0.85rem', color: '#455A64', marginBottom: '0.5rem', fontWeight: '500' }}>AI 재구성:</p>
+              <p style={{ color: '#263238', lineHeight: '1.6', fontSize: '0.9rem' }}>
                 {mockAIRestructuredMy}
               </p>
             </div>
@@ -132,7 +145,7 @@ export default function ParticipantTranslationScreen({ meeting, onBack, onNext }
               </p>
               {mockTranslationMyToOfficial.risks[0] && (
                 <div style={{ marginBottom: '1rem' }}>
-                  <strong style={{ fontSize: '0.9rem', color: '#d32f2f' }}>
+                  <strong style={{ fontSize: '0.9rem', color: '#546E7A' }}>
                     {mockTranslationMyToOfficial.risks[0].type}:
                   </strong>
                   <p style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.9rem', lineHeight: '1.5' }}>
@@ -142,7 +155,7 @@ export default function ParticipantTranslationScreen({ meeting, onBack, onNext }
               )}
               {mockTranslationMyToOfficial.risks[1] && (
                 <div style={{ marginBottom: '1rem' }}>
-                  <strong style={{ fontSize: '0.9rem', color: '#d32f2f' }}>
+                  <strong style={{ fontSize: '0.9rem', color: '#546E7A' }}>
                     {mockTranslationMyToOfficial.risks[1].type}:
                   </strong>
                   <p style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.9rem', lineHeight: '1.5' }}>
@@ -158,7 +171,7 @@ export default function ParticipantTranslationScreen({ meeting, onBack, onNext }
         <div>
           <div className="card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <FaExchangeAlt style={{ color: '#ff9800', fontSize: '1.2rem' }} />
+              <FaExchangeAlt style={{ color: '#8D6E63', fontSize: '1.2rem' }} />
               <h2 className="card-title" style={{ marginBottom: 0 }}>
                 {mockTranslationOpponentToCitizen.title}
               </h2>
@@ -179,13 +192,13 @@ export default function ParticipantTranslationScreen({ meeting, onBack, onNext }
             
             <div style={{ 
               padding: '0.75rem', 
-              background: '#fff3e0', 
+              background: '#FBE9E7', 
               borderRadius: '6px',
               marginBottom: '1rem',
-              border: '1px solid #ffcc80'
+              border: '1px solid #FFCCBC'
             }}>
-              <p style={{ fontSize: '0.85rem', color: '#e65100', marginBottom: '0.5rem', fontWeight: '500' }}>AI 재구성:</p>
-              <p style={{ color: '#bf360c', lineHeight: '1.6', fontSize: '0.9rem' }}>
+              <p style={{ fontSize: '0.85rem', color: '#8D6E63', marginBottom: '0.5rem', fontWeight: '500' }}>AI 재구성:</p>
+              <p style={{ color: '#5D4037', lineHeight: '1.6', fontSize: '0.9rem' }}>
                 {mockAIRestructuredOpponent}
               </p>
             </div>
@@ -196,7 +209,7 @@ export default function ParticipantTranslationScreen({ meeting, onBack, onNext }
               </p>
               {mockTranslationOpponentToCitizen.translations[0] && (
                 <div style={{ marginBottom: '1rem' }}>
-                  <strong style={{ fontSize: '0.9rem', color: '#f57c00' }}>
+                  <strong style={{ fontSize: '0.9rem', color: '#8D6E63' }}>
                     {mockTranslationOpponentToCitizen.translations[0].type}:
                   </strong>
                   <p style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.9rem', lineHeight: '1.5' }}>
@@ -206,7 +219,7 @@ export default function ParticipantTranslationScreen({ meeting, onBack, onNext }
               )}
               {mockTranslationOpponentToCitizen.translations[1] && (
                 <div style={{ marginBottom: '1rem' }}>
-                  <strong style={{ fontSize: '0.9rem', color: '#f57c00' }}>
+                  <strong style={{ fontSize: '0.9rem', color: '#8D6E63' }}>
                     {mockTranslationOpponentToCitizen.translations[1].type}:
                   </strong>
                   <p style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.9rem', lineHeight: '1.5' }}>
@@ -215,6 +228,23 @@ export default function ParticipantTranslationScreen({ meeting, onBack, onNext }
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* 비교 UI */}
+      <div className="card" style={{ marginTop: '1.5rem' }}>
+        <h3 className="card-title" style={{ fontSize: '1.1rem', marginBottom: '0.75rem' }}>번역 비교 한눈에 보기</h3>
+        <div className="grid grid-2" style={{ gap: '1rem' }}>
+          <div style={{ background: '#ECEFF1', border: '1px solid #CFD8DC', borderRadius: '8px', padding: '1rem' }}>
+            <p style={{ fontSize: '0.85rem', color: '#546E7A', marginBottom: '0.35rem' }}>내 원문 → 정책 언어</p>
+            <p style={{ fontWeight: 600, color: '#263238', marginBottom: '0.35rem' }}>{mockMyStatement}</p>
+            <p style={{ color: '#455A64', lineHeight: '1.5', fontSize: '0.95rem' }}>{mockAIRestructuredMy}</p>
+          </div>
+          <div style={{ background: '#FBE9E7', border: '1px solid #FFCCBC', borderRadius: '8px', padding: '1rem' }}>
+            <p style={{ fontSize: '0.85rem', color: '#8D6E63', marginBottom: '0.35rem' }}>상대 원문 → 시민 언어</p>
+            <p style={{ fontWeight: 600, color: '#5D4037', marginBottom: '0.35rem' }}>{mockOpponentStatement}</p>
+            <p style={{ color: '#6D4C41', lineHeight: '1.5', fontSize: '0.95rem' }}>{mockAIRestructuredOpponent}</p>
           </div>
         </div>
       </div>
@@ -258,4 +288,3 @@ export default function ParticipantTranslationScreen({ meeting, onBack, onNext }
     </div>
   )
 }
-

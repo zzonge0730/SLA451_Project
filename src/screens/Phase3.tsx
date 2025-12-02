@@ -69,6 +69,8 @@ const mockReflectionQuestions = [
 export default function Phase3({ meeting, onBack, onNext }: Phase3Props) {
   const [responses, setResponses] = useState<Record<string, string>>({})
   const [participantNotifications, setParticipantNotifications] = useState<string[]>([])
+  const [participantCount, setParticipantCount] = useState(0)
+  const [totalParticipants] = useState(3) // 데모용: 총 3명 가정
   const channelRef = useRef<BroadcastChannel | null>(null)
   
   useEffect(() => {
@@ -79,6 +81,8 @@ export default function Phase3({ meeting, onBack, onNext }: Phase3Props) {
         if (event.data.type === 'PARTICIPANT_RESPONSE') {
           const { participant, message } = event.data
           setParticipantNotifications(prev => [...prev, `${participant} ${message}`])
+          // 응답 카운트 증가
+          setParticipantCount(prev => Math.min(prev + 1, totalParticipants))
           // 5초 후 알림 제거
           setTimeout(() => {
             setParticipantNotifications(prev => prev.filter(n => n !== `${participant} ${message}`))
@@ -95,7 +99,7 @@ export default function Phase3({ meeting, onBack, onNext }: Phase3Props) {
         }
       }
     }
-  }, [])
+  }, [totalParticipants])
 
   const allVerifyQuestions = [...mockVerifyQuestionsExpert, ...mockVerifyQuestionsOfficial]
   const allCritiqueQuestions = mockCritiqueQuestions.flatMap((group) => group.questions)
@@ -126,11 +130,71 @@ export default function Phase3({ meeting, onBack, onNext }: Phase3Props) {
         >
           ← Phase 선택으로
         </button>
-        <h1 className="page-title">Phase 3 – 검증·비평·성찰 질문</h1>
-        <p className="phase-desc">AI가 제안하는 검증·비평·성찰 질문</p>
-        {meeting && (
-          <p className="page-subtitle">{meeting.name} - {meeting.agenda}</p>
-        )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+          <div style={{ flex: 1 }}>
+            <h1 className="page-title">Phase 3 – 검증·비평·성찰 질문</h1>
+            <p className="phase-desc">AI가 제안하는 검증·비평·성찰 질문</p>
+            {meeting && (
+              <p className="page-subtitle">{meeting.name} - {meeting.agenda}</p>
+            )}
+          </div>
+          {/* 실시간 응답 현황판 */}
+          <div style={{
+            background: '#ECEFF1',
+            border: '1px solid #CFD8DC',
+            borderRadius: '8px',
+            padding: '1rem 1.5rem',
+            minWidth: '200px',
+            textAlign: 'center',
+            flexShrink: 0
+          }}>
+            <p style={{ 
+              fontSize: '0.85rem', 
+              color: '#546E7A', 
+              marginBottom: '0.5rem',
+              fontWeight: '500'
+            }}>
+              참여자 응답 현황
+            </p>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              gap: '0.5rem',
+              marginBottom: '0.5rem'
+            }}>
+              {Array.from({ length: totalParticipants }).map((_, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '50%',
+                    background: idx < participantCount ? '#607D8B' : '#e0e0e0',
+                    border: idx < participantCount ? '2px solid #455A64' : '2px solid #bdbdbd'
+                  }}
+                />
+              ))}
+            </div>
+            <p style={{ 
+              fontSize: '1.2rem', 
+              fontWeight: '600', 
+              color: '#263238',
+              margin: 0
+            }}>
+              {participantCount}/{totalParticipants}명 제출 완료
+            </p>
+            {participantCount < totalParticipants && (
+              <p style={{ 
+                fontSize: '0.75rem', 
+                color: '#78909C', 
+                marginTop: '0.25rem',
+                margin: 0
+              }}>
+                대기 중...
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* 참가자 응답 알림 */}

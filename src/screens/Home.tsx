@@ -11,13 +11,8 @@ type HomeProps = {
 const mockMeetings: Meeting[] = [
   {
     id: '1',
-    name: '경제산업분과 제11차 회의',
+    name: '과학기술정책위원회 R&D 예산 배분 회의',
     agenda: '국가 R&D 예산 분배 원칙 수립'
-  },
-  {
-    id: '2',
-    name: '환경정책위원회 제5차 회의',
-    agenda: '탄소중립 로드맵 검토'
   }
 ]
 

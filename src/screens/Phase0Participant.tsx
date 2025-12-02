@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import StepIndicator from '../components/StepIndicator'
 
 type Meeting = {
   id: string
@@ -40,16 +41,50 @@ export default function Phase0Participant({ meeting, onBack, onNext }: Phase0Par
   const [currentStep, setCurrentStep] = useState(0)
   const [userInput, setUserInput] = useState('')
   const [interviewComplete, setInterviewComplete] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
+  const [skipAnimation, setSkipAnimation] = useState(false)
 
-  const handleSend = () => {
-    if (!userInput.trim()) return
+  // Typewriter 효과
+  const typewriterEffect = (text: string, targetSetter: (value: string) => void, onComplete?: () => void) => {
+    if (skipAnimation) {
+      targetSetter(text)
+      onComplete?.()
+      return
+    }
+
+    setIsTyping(true)
+    let index = 0
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        targetSetter(text.substring(0, index + 1))
+        index++
+      } else {
+        clearInterval(interval)
+        setIsTyping(false)
+        onComplete?.()
+      }
+    }, 30) // 타이핑 속도 조절
+  }
+
+  const handleChipClick = (answer: string) => {
+    typewriterEffect(answer, setUserInput, () => {
+      // 타이핑 완료 후 자동 전송
+      setTimeout(() => {
+        handleSend(answer)
+      }, 300)
+    })
+  }
+
+  const handleSend = (prefilledText?: string) => {
+    const textToSend = prefilledText || userInput
+    if (!textToSend.trim()) return
 
     const nextStep = currentStep + 1
     const isLastStep = nextStep >= mockInterviewFlow.length - 1
 
     const newMessages: Message[] = [
       ...messages,
-      { speaker: 'participant', text: userInput },
+      { speaker: 'participant', text: textToSend },
       { speaker: 'ai', text: mockInterviewFlow[nextStep]?.ai || '' }
     ]
 
@@ -87,6 +122,18 @@ export default function Phase0Participant({ meeting, onBack, onNext }: Phase0Par
         <p className="text-muted" style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
           회의 전날, 온라인 사전 인터뷰
         </p>
+        <StepIndicator
+          steps={['사전 인터뷰', '발언 입력', '번역 비교', '합의 확인']}
+          current={1}
+        />
+        <div className="card" style={{ background: '#ECEFF1', borderColor: '#CFD8DC', marginBottom: '1.5rem' }}>
+          <h3 style={{ marginBottom: '0.5rem', color: '#263238' }}>지금 하실 일</h3>
+          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#546E7A', lineHeight: '1.7' }}>
+            <li>아래 "시나리오대로 답변" 버튼을 눌러 자동 입력하거나 짧게 입력하세요.</li>
+            <li>AI가 질문을 던지면 버튼 한 번으로 답변을 채워 넣을 수 있습니다.</li>
+            <li>완료 후 우측에서 요약을 확인하고 다음 단계로 이동합니다.</li>
+          </ul>
+        </div>
       </div>
 
       <div className="grid grid-2">
@@ -150,25 +197,92 @@ export default function Phase0Participant({ meeting, onBack, onNext }: Phase0Par
 
             {!interviewComplete ? (
               <div>
+                {/* 즉시 입력 토글 */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'flex-end', 
+                  marginBottom: '0.5rem',
+                  fontSize: '0.85rem'
+                }}>
+                  <label style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.5rem',
+                    cursor: 'pointer',
+                    color: '#666'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={skipAnimation}
+                      onChange={(e) => setSkipAnimation(e.target.checked)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    즉시 입력
+                  </label>
+                </div>
+
                 <textarea
                   className="form-textarea"
                   style={{ minHeight: '80px', marginBottom: '0.75rem' }}
-                  placeholder="(데모에서는 아래 예시 답변을 참고하세요)"
+                  placeholder={isTyping ? "답변이 입력되고 있습니다..." : "답변을 입력하거나 아래 추천 답변을 선택하세요"}
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
+                    if (e.key === 'Enter' && !e.shiftKey && !isTyping) {
                       e.preventDefault()
                       handleSend()
                     }
                   }}
+                  disabled={isTyping}
                 />
+
+                {/* 추천 답변 Chip */}
+                {mockInterviewFlow[currentStep]?.participant && (
+                  <div style={{ marginBottom: '0.75rem' }}>
+                    <p style={{ 
+                      fontSize: '0.85rem', 
+                      color: '#666', 
+                      marginBottom: '0.5rem',
+                      fontWeight: '500'
+                    }}>
+                      추천 답변:
+                    </p>
+                    <div style={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: '0.5rem' 
+                    }}>
+                      <button
+                        className="btn"
+                        onClick={() => handleChipClick(mockInterviewFlow[currentStep].participant)}
+                        disabled={isTyping}
+                        style={{
+                          fontSize: '0.9rem',
+                          padding: '0.5rem 1rem',
+                          background: '#f0f7ff',
+                          border: '1px solid #4a90e2',
+                          color: '#1565c0',
+                          cursor: isTyping ? 'not-allowed' : 'pointer',
+                          opacity: isTyping ? 0.5 : 1
+                        }}
+                      >
+                        시나리오대로 답변하기
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <button 
                   className="btn btn-primary" 
-                  onClick={handleSend}
-                  style={{ width: '100%' }}
+                  onClick={() => handleSend()}
+                  disabled={!userInput.trim() || isTyping}
+                  style={{ 
+                    width: '100%',
+                    opacity: (!userInput.trim() || isTyping) ? 0.5 : 1,
+                    cursor: (!userInput.trim() || isTyping) ? 'not-allowed' : 'pointer'
+                  }}
                 >
-                  답변 전송
+                  {isTyping ? '입력 중...' : '답변 전송'}
                 </button>
               </div>
             ) : (

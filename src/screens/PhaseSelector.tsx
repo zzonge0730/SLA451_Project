@@ -21,7 +21,7 @@ const phases = [
     subtitle: '사전 프로필 입력',
     description: '참여자 프로필 및 가치 키워드 입력',
     icon: FaUser,
-    color: '#4a90e2'
+    color: '#455A64'
   },
   {
     id: 1,
@@ -29,7 +29,7 @@ const phases = [
     subtitle: '감정·가치 매핑',
     description: '발언 내용의 감정과 가치 분석',
     icon: FaChartLine,
-    color: '#9c27b0'
+    color: '#455A64'
   },
   {
     id: 2,
@@ -37,7 +37,7 @@ const phases = [
     subtitle: '논증 구조화 & 가치 번역',
     description: '논리 구조 분석 및 가치 번역',
     icon: FaExchangeAlt,
-    color: '#ff9800'
+    color: '#455A64'
   },
   {
     id: 3,
@@ -45,7 +45,7 @@ const phases = [
     subtitle: '검증·비평·성찰 질문',
     description: '검증 및 비평 질문 생성',
     icon: FaCheckCircle,
-    color: '#4caf50'
+    color: '#455A64'
   },
   {
     id: 4,
@@ -53,7 +53,7 @@ const phases = [
     subtitle: '조건부 합의안 초안',
     description: '합의안 초안 작성',
     icon: FaFileContract,
-    color: '#f44336'
+    color: '#455A64'
   }
 ]
 
@@ -77,13 +77,13 @@ export default function PhaseSelector({
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
             <h1 className="page-title" style={{ marginBottom: 0 }}>{meeting.name}</h1>
-            <span className="tag" style={{ 
-              background: '#fff4e6',
-              borderColor: '#ffd4a3',
-              color: '#8b5a00'
-            }}>
-              참가자 모드
-            </span>
+          <span className="tag" style={{ 
+            background: '#ECEFF1',
+            borderColor: '#CFD8DC',
+            color: '#546E7A'
+          }}>
+            참가자 모드
+          </span>
           </div>
           <p className="page-subtitle">{meeting.agenda}</p>
         </div>
@@ -136,9 +136,9 @@ export default function PhaseSelector({
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
           <h1 className="page-title" style={{ marginBottom: 0 }}>{meeting.name}</h1>
           <span className="tag" style={{ 
-            background: '#e8f4f8',
-            borderColor: '#b8dce8',
-            color: '#2c5f7c'
+            background: '#ECEFF1',
+            borderColor: '#CFD8DC',
+            color: '#546E7A'
           }}>
             주관자 모드
           </span>
@@ -203,7 +203,7 @@ export default function PhaseSelector({
                   width: '60px', 
                   height: '60px', 
                   borderRadius: '50%',
-                  background: `${phase.color}15`,
+                  background: '#ECEFF1',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

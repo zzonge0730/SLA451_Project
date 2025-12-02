@@ -75,16 +75,16 @@ export default function Phase1({ meeting, onBack, onNext }: Phase1Props) {
                   <Radar
                     name="정부·산업 (전문가)"
                     dataKey="정부·산업"
-                    stroke="#1976d2"
-                    fill="#1976d2"
-                    fillOpacity={0.7}
+                    stroke="#607D8B"
+                    fill="#607D8B"
+                    fillOpacity={0.6}
                   />
                   <Radar
                     name="시민·청년 (지역)"
                     dataKey="시민·청년"
-                    stroke="#d32f2f"
-                    fill="#d32f2f"
-                    fillOpacity={0.7}
+                    stroke="#8D6E63"
+                    fill="#8D6E63"
+                    fillOpacity={0.6}
                   />
               <Legend />
             </RadarChart>

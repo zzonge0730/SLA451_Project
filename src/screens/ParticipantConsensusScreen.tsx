@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { FaFileContract, FaCheckCircle, FaExclamationTriangle, FaTimesCircle } from 'react-icons/fa'
+import StepIndicator from '../components/StepIndicator'
 
 type Meeting = {
   id: string
@@ -79,6 +80,18 @@ export default function ParticipantConsensusScreen({ meeting, onBack }: Particip
         {meeting && (
           <p className="page-subtitle">{meeting.name} - {meeting.agenda}</p>
         )}
+        <StepIndicator
+          steps={['발언 입력', '재구성 확인', '번역 비교', '합의 확인']}
+          current={4}
+        />
+        <div className="card" style={{ background: '#ECEFF1', borderColor: '#CFD8DC', marginBottom: '1.5rem' }}>
+          <h3 style={{ marginBottom: '0.5rem', color: '#263238' }}>지금 하실 일</h3>
+          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: '#546E7A', lineHeight: '1.7' }}>
+            <li>합의안 요약과 남은 쟁점을 확인하세요.</li>
+            <li>동의/조건부/비동의를 선택하고 남은 우려를 한 줄로 남깁니다.</li>
+            <li>제출하면 주관자 화면에 바로 반영됩니다.</li>
+          </ul>
+        </div>
         <div style={{ 
           marginTop: '0.5rem', 
           padding: '0.5rem 0.75rem', 
@@ -239,4 +252,3 @@ export default function ParticipantConsensusScreen({ meeting, onBack }: Particip
     </div>
   )
 }
-
