@@ -1,3 +1,6 @@
+import { FaUser, FaChartLine, FaExchangeAlt, FaCheckCircle, FaFileContract } from 'react-icons/fa'
+import TabletCTA from '../components/TabletCTA'
+
 type Meeting = {
   id: string
   name: string
@@ -11,48 +14,46 @@ type PhaseSelectorProps = {
   userRole: 'moderator' | 'participant'
 }
 
-import TabletCTA from '../components/TabletCTA'
-
 const phases = [
   {
     id: 0,
-    title: 'Phase 0 – 사전 프로필 입력',
+    title: 'Phase 0',
+    subtitle: '사전 프로필 입력',
     description: '참여자 프로필 및 가치 키워드 입력',
-    inputs: ['참여자 사전 인터뷰 응답', '감정·가치 키워드'],
-    outputs: ['프로필 요약', 'AI 메모(질문 방향, 주의점)'],
-    demo: '대화 인터페이스에서 프로필을 정리하는 흐름 시연'
+    icon: FaUser,
+    color: '#4a90e2'
   },
   {
     id: 1,
-    title: 'Phase 1 – 감정·가치 매핑',
+    title: 'Phase 1',
+    subtitle: '감정·가치 매핑',
     description: '발언 내용의 감정과 가치 분석',
-    inputs: ['1라운드 발언 스크립트'],
-    outputs: ['발언별 감정/가치', '집단별 요약', '마찰 축 한 줄 분석'],
-    demo: '같은 목표를 두고 우선순위만 다른 점을 시각화'
+    icon: FaChartLine,
+    color: '#9c27b0'
   },
   {
     id: 2,
-    title: 'Phase 2 – 논증 구조화 & 가치 번역',
+    title: 'Phase 2',
+    subtitle: '논증 구조화 & 가치 번역',
     description: '논리 구조 분석 및 가치 번역',
-    inputs: ['양측 발언(논점)'],
-    outputs: ['전제-이유-결론-숨은 전제', '리스크 관리/전략적 전환 언어 번역', '브릿지 문장 3~5개'],
-    demo: '한 문장씩 리스크/전환 언어로 어떻게 바뀌는지 비교'
+    icon: FaExchangeAlt,
+    color: '#ff9800'
   },
   {
     id: 3,
-    title: 'Phase 3 – 검증·비평·성찰 질문',
+    title: 'Phase 3',
+    subtitle: '검증·비평·성찰 질문',
     description: '검증 및 비평 질문 생성',
-    inputs: ['집단 요약', '브릿지 문장'],
-    outputs: ['Verify/Critique/Reflection 질문 세트'],
-    demo: '참여자 응답을 받아 합의안 전에 검증하는 흐름 강조'
+    icon: FaCheckCircle,
+    color: '#4caf50'
   },
   {
     id: 4,
-    title: 'Phase 4 – 조건부 합의안 초안',
+    title: 'Phase 4',
+    subtitle: '조건부 합의안 초안',
     description: '합의안 초안 작성',
-    inputs: ['공통 원칙', '레드라인', '남은 쟁점'],
-    outputs: ['조건부 합의 조항', '운영·평가·재검토 절차', '소수 의견 표기'],
-    demo: '완전 합의가 아닌 마지못한 타협임을 명시'
+    icon: FaFileContract,
+    color: '#f44336'
   }
 ]
 
@@ -100,48 +101,98 @@ export default function PhaseSelector({
       </div>
 
       <div>
-        <h2 className="card-title" style={{ marginBottom: '1.5rem' }}>Phase 선택</h2>
-        <div className="grid grid-2">
-          {phases.map((phase) => (
-            <div
-              key={phase.id}
-              className="card"
-              style={{
-                minHeight: '220px',
-                borderRadius: '12px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between'
-              }}
-            >
-              <div>
-                <h3 style={{ marginBottom: '0.5rem', fontSize: '1.15rem' }}>
+        <h2 className="card-title" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>Phase 선택</h2>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'flex-start',
+          gap: '1rem',
+          flexWrap: 'wrap',
+          marginBottom: '2rem'
+        }}>
+          {phases.map((phase) => {
+            const IconComponent = phase.icon
+            return (
+              <div
+                key={phase.id}
+                className="card"
+                style={{
+                  width: '180px',
+                  minHeight: '200px',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  padding: '1.5rem 1rem',
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  border: `2px solid ${phase.color}20`
+                }}
+                onClick={() => onPhaseSelect(phase.id)}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)'
+                  e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)'
+                }}
+              >
+                <div style={{ 
+                  width: '60px', 
+                  height: '60px', 
+                  borderRadius: '50%',
+                  background: `${phase.color}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '1rem'
+                }}>
+                  <IconComponent style={{ fontSize: '2rem', color: phase.color }} />
+                </div>
+                <h3 style={{ 
+                  marginBottom: '0.25rem', 
+                  fontSize: '1.1rem',
+                  fontWeight: '700',
+                  color: '#222'
+                }}>
                   {phase.title}
                 </h3>
-                <p className="text-muted" style={{ marginBottom: '0.75rem' }}>
+                <p style={{ 
+                  marginBottom: '0.75rem', 
+                  fontSize: '0.85rem',
+                  color: '#666',
+                  fontWeight: '500'
+                }}>
+                  {phase.subtitle}
+                </p>
+                <p className="text-muted" style={{ 
+                  fontSize: '0.85rem', 
+                  lineHeight: '1.4',
+                  marginBottom: '1rem',
+                  flex: 1
+                }}>
                   {phase.description}
                 </p>
-                <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
-                  <span className="tag" style={{ background: '#eef6ff', borderColor: '#c6ddff', color: '#225ea8' }}>
-                    입력 {phase.inputs.length}
-                  </span>
-                  <span className="tag" style={{ background: '#eefaf2', borderColor: '#c8e6c9', color: '#2e7d32' }}>
-                    출력 {phase.outputs.length}
-                  </span>
-                </div>
-                <p className="text-muted" style={{ fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-                  데모 포인트: {phase.demo}
-                </p>
+                <button
+                  className="btn btn-primary"
+                  style={{ 
+                    width: '100%',
+                    marginTop: 'auto',
+                    background: phase.color,
+                    borderColor: phase.color
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onPhaseSelect(phase.id)
+                  }}
+                >
+                  실행
+                </button>
               </div>
-              <button
-                className="btn btn-primary"
-                style={{ width: '100%', marginTop: '0.5rem' }}
-                onClick={() => onPhaseSelect(phase.id)}
-              >
-                실행
-              </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 

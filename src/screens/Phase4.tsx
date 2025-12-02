@@ -66,8 +66,6 @@ const mockNextSteps = [
 
 const phaseGuide = {
   purpose: '조건부 합의안을 문서 형태로 초안화하고, 남은 쟁점을 명시해 "마지못한 타협"임을 보여줍니다.',
-  inputs: ['공통 원칙', '레드라인(정부/시민)', '남아있는 쟁점', '브릿지 문장 검증 결과'],
-  outputs: ['조건부 조항 목록', '운영·평가·재검토 절차', '정보 공개·참여 보장 항목', '소수 의견 명시'],
   demoTips: [
     '각 조건에 기간/기준을 붙여 한시성·상향 가능성을 보여줌',
     '이견이 남은 쟁점을 별도 박스로 고정해 완전 합의가 아님을 강조',
@@ -101,8 +99,6 @@ export default function Phase4({ meeting, onBack, onNext }: Phase4Props) {
       <PhaseGuide
         title="Phase 4 시연 가이드"
         purpose={phaseGuide.purpose}
-        inputs={phaseGuide.inputs}
-        outputs={phaseGuide.outputs}
         demoTips={phaseGuide.demoTips}
       />
 

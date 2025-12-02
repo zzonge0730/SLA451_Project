@@ -14,7 +14,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #f2f4f7;
   color: #333;
-  line-height: 1.45; /* 1.6 -> 1.45 (약 10% 감소) */
+  line-height: 1.6; /* 발표용 가독성 확보 */
+  font-size: 18px; /* 기본 폰트 사이즈 업 */
 }
 
 #root {
@@ -36,7 +37,7 @@ body {
 }
 
 .page-title {
-  font-size: 1.6rem;
+  font-size: 1.8rem; /* 발표용 크기 확대 */
   font-weight: 600;
   color: #222;
   margin-bottom: 0.25rem;
@@ -67,14 +68,14 @@ body {
 }
 
 .card-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem; /* 발표용 크기 확대 */
   font-weight: 600;
   margin-bottom: 1rem;
   color: #222;
 }
 
 .card-content {
-  color: #555;
+  color: #222; /* #555에서 변경 - 프로젝터 가독성 향상 */
 }
 
 /* 분석 박스 스타일 (우측 패널 구분선) */
@@ -209,6 +210,7 @@ body {
 
 /* 텍스트 유틸리티 */
 .text-muted {
+  color: #444; /* #666에서 변경 - 프로젝터 가독성 향상 */
   color: #666;
   font-size: 0.95rem;
 }
@@ -252,4 +254,16 @@ body {
 .bottom-cta .cta-buttons {
   display: flex;
   gap: 1rem;
+}
+
+/* 토스트 애니메이션 */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }

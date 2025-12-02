@@ -79,8 +79,6 @@ export default function Phase0({ meeting, onBack, onNext }: Phase0Props) {
 
   const phaseGuide = {
     purpose: '사전 인터뷰를 통해 감정·가치·프로필을 명료화하고, 이후 단계의 맥락을 보정합니다.',
-    inputs: ['참여자 사전 인터뷰 응답', '감정/가치 키워드', '우려·기대의 자유 서술'],
-    outputs: ['프로필 요약(역할/가치/감정)', 'AI 메모(질문 톤, 주의점)', '한 줄 요약'],
     demoTips: [
       '참여자 답변 입력 → AI가 즉시 요약/재질문',
       '프로필 요약이 오른쪽 카드에 누적되는 흐름을 보여줌',
@@ -252,8 +250,6 @@ export default function Phase0({ meeting, onBack, onNext }: Phase0Props) {
           <PhaseGuide
             title="Phase 0 시연 가이드"
             purpose={phaseGuide.purpose}
-            inputs={phaseGuide.inputs}
-            outputs={phaseGuide.outputs}
             demoTips={phaseGuide.demoTips}
           />
           <div className="card">

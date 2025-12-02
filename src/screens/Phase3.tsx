@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { FaCheckCircle, FaExclamationTriangle, FaLightbulb, FaRobot } from 'react-icons/fa'
 import PhaseGuide from '../components/PhaseGuide'
 import TabletCTA from '../components/TabletCTA'
@@ -69,6 +69,34 @@ const mockReflectionQuestions = [
 
 export default function Phase3({ meeting, onBack, onNext }: Phase3Props) {
   const [responses, setResponses] = useState<Record<string, string>>({})
+  const [participantNotifications, setParticipantNotifications] = useState<string[]>([])
+  const channelRef = useRef<BroadcastChannel | null>(null)
+  
+  useEffect(() => {
+    if (typeof BroadcastChannel !== 'undefined') {
+      channelRef.current = new BroadcastChannel('demo_sync_channel')
+      
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data.type === 'PARTICIPANT_RESPONSE') {
+          const { participant, message } = event.data
+          setParticipantNotifications(prev => [...prev, `${participant} ${message}`])
+          // 5초 후 알림 제거
+          setTimeout(() => {
+            setParticipantNotifications(prev => prev.filter(n => n !== `${participant} ${message}`))
+          }, 5000)
+        }
+      }
+      
+      channelRef.current.onmessage = handleMessage
+      
+      return () => {
+        if (channelRef.current) {
+          channelRef.current.onmessage = null
+          channelRef.current.close()
+        }
+      }
+    }
+  }, [])
 
   const allVerifyQuestions = [...mockVerifyQuestionsExpert, ...mockVerifyQuestionsOfficial]
   const allCritiqueQuestions = mockCritiqueQuestions.flatMap((group) => group.questions)
@@ -91,8 +119,6 @@ export default function Phase3({ meeting, onBack, onNext }: Phase3Props) {
 
   const phaseGuide = {
     purpose: '브릿지 문장과 요약이 원 의도를 잘 담았는지 검증·비평하고, 입장 변화를 성찰하도록 질문 세트를 자동 생성합니다.',
-    inputs: ['집단 A/B 요약', '브릿지 문장 리스트'],
-    outputs: ['Verify 질문(정확성 검증)', 'Critique 질문(AI 프레이밍 비판)', 'Reflection 질문(입장 변화 성찰)'],
     demoTips: [
       '질문이 요약/번역에서 무엇이 희석됐는지 직접 묻도록 구성되었음을 강조',
       '"너무 미화됨" 같은 선택지를 넣어 편향 감지 흐름 시연',
@@ -117,11 +143,40 @@ export default function Phase3({ meeting, onBack, onNext }: Phase3Props) {
         )}
       </div>
 
+      {/* 참가자 응답 알림 */}
+      {participantNotifications.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem'
+        }}>
+          {participantNotifications.map((notification, idx) => (
+            <div
+              key={idx}
+              style={{
+                background: '#4caf50',
+                color: 'white',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                animation: 'slideIn 0.3s ease-out',
+                fontSize: '0.95rem',
+                fontWeight: '500'
+              }}
+            >
+              ✓ {notification}
+            </div>
+          ))}
+        </div>
+      )}
+
       <PhaseGuide
         title="Phase 3 시연 가이드"
         purpose={phaseGuide.purpose}
-        inputs={phaseGuide.inputs}
-        outputs={phaseGuide.outputs}
         demoTips={phaseGuide.demoTips}
       />
 

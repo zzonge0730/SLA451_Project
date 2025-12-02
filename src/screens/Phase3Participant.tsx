@@ -1,3 +1,5 @@
+import { useState, useEffect, useRef } from 'react'
+
 type Meeting = {
   id: string
   name: string
@@ -25,6 +27,38 @@ const mockCritiqueQuestions = [
 ]
 
 export default function Phase3Participant({ meeting, onBack }: Phase3ParticipantProps) {
+  const [responses, setResponses] = useState<Record<string, string>>({})
+  const [isComplete, setIsComplete] = useState(false)
+  const channelRef = useRef<BroadcastChannel | null>(null)
+  
+  useEffect(() => {
+    if (typeof BroadcastChannel !== 'undefined') {
+      channelRef.current = new BroadcastChannel('demo_sync_channel')
+      return () => {
+        if (channelRef.current) {
+          channelRef.current.close()
+        }
+      }
+    }
+  }, [])
+  
+  const handleResponseChange = (key: string, value: string) => {
+    setResponses({ ...responses, [key]: value })
+  }
+  
+  const handleSubmit = () => {
+    setIsComplete(true)
+    // 주관자에게 응답 완료 알림 전송
+    if (channelRef.current) {
+      channelRef.current.postMessage({ 
+        type: 'PARTICIPANT_RESPONSE', 
+        phase: 3,
+        participant: '참여자 A',
+        message: '응답 완료!'
+      })
+    }
+  }
+  
   return (
     <div>
       <div className="page-header">
@@ -49,15 +83,21 @@ export default function Phase3Participant({ meeting, onBack }: Phase3Participant
             <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
               내가 제시한 논증을 검증하기 위한 질문들입니다.
             </p>
-            <ul className="list">
-              {mockMyVerifyQuestions.map((question, idx) => (
-                <li key={idx} className="list-item">
-                  <p style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                    {question}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            {mockMyVerifyQuestions.map((question, idx) => (
+              <div key={idx} style={{ marginBottom: '1rem' }}>
+                <p style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '0.5rem' }}>
+                  {question}
+                </p>
+                <textarea
+                  className="form-textarea"
+                  style={{ minHeight: '80px', width: '100%' }}
+                  placeholder="답변을 입력하세요..."
+                  value={responses[`verify-${idx}`] || ''}
+                  onChange={(e) => handleResponseChange(`verify-${idx}`, e.target.value)}
+                  disabled={isComplete}
+                />
+              </div>
+            ))}
           </div>
         </div>
 
@@ -68,18 +108,45 @@ export default function Phase3Participant({ meeting, onBack }: Phase3Participant
             <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
               내 논증을 비판적으로 검토하고 성찰하기 위한 질문들입니다.
             </p>
-            <ul className="list">
-              {mockCritiqueQuestions.map((question, idx) => (
-                <li key={idx} className="list-item">
-                  <p style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                    {question}
-                  </p>
-                </li>
-              ))}
-            </ul>
+            {mockCritiqueQuestions.map((question, idx) => (
+              <div key={idx} style={{ marginBottom: '1rem' }}>
+                <p style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '0.5rem' }}>
+                  {question}
+                </p>
+                <textarea
+                  className="form-textarea"
+                  style={{ minHeight: '80px', width: '100%' }}
+                  placeholder="답변을 입력하세요..."
+                  value={responses[`critique-${idx}`] || ''}
+                  onChange={(e) => handleResponseChange(`critique-${idx}`, e.target.value)}
+                  disabled={isComplete}
+                />
+              </div>
+            ))}
           </div>
         </div>
       </div>
+      
+      {!isComplete ? (
+        <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+          <button className="btn btn-primary" onClick={handleSubmit} style={{ minWidth: '200px' }}>
+            응답 제출하기
+          </button>
+        </div>
+      ) : (
+        <div style={{ 
+          textAlign: 'center', 
+          marginTop: '2rem',
+          padding: '1rem',
+          background: '#e8f5e9',
+          borderRadius: '8px',
+          border: '1px solid #4caf50'
+        }}>
+          <p style={{ color: '#2e7d32', fontSize: '1rem', fontWeight: '600' }}>
+            ✓ 응답이 제출되었습니다. 주관자 화면에 알림이 전송되었습니다.
+          </p>
+        </div>
+      )}
     </div>
   )
 }

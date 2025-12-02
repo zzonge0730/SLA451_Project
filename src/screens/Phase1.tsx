@@ -46,12 +46,10 @@ const radarData = [
 export default function Phase1({ meeting, onBack, onNext }: Phase1Props) {
   const phaseGuide = {
     purpose: '1라운드 발언을 감정·가치 지도와 집단 요약으로 바꿔 초기 마찰 지점을 드러냅니다.',
-    inputs: ['회의 1라운드 발언 스크립트', '화자 정보(정부/산업/시민/청년)'],
-    outputs: ['발언별 감정·가치 태깅', '집단별 감정/가치 요약', '마찰 축 한 줄 분석'],
     demoTips: [
       '같은 목표를 공유하지만 우선순위가 다른 지점을 강조',
       '"효율성(정부) vs 형평성(시민)"이라는 축을 카드/태그로 보여줌',
-      '스크립트 영역과 분석 영역이 나란히 있다는 점을 강조'
+      '레이더 차트로 가치 프레임을 시각적으로 비교'
     ]
   }
 
@@ -84,20 +82,20 @@ export default function Phase1({ meeting, onBack, onNext }: Phase1Props) {
                 style={{ fontSize: '1rem', fontWeight: '500' }}
               />
               <PolarRadiusAxis angle={90} domain={[0, 100]} />
-              <Radar
-                name="정부·산업 (전문가)"
-                dataKey="정부·산업"
-                stroke="#4a90e2"
-                fill="#4a90e2"
-                fillOpacity={0.6}
-              />
-              <Radar
-                name="시민·청년 (지역)"
-                dataKey="시민·청년"
-                stroke="#ff9800"
-                fill="#ff9800"
-                fillOpacity={0.6}
-              />
+                  <Radar
+                    name="정부·산업 (전문가)"
+                    dataKey="정부·산업"
+                    stroke="#1976d2"
+                    fill="#1976d2"
+                    fillOpacity={0.7}
+                  />
+                  <Radar
+                    name="시민·청년 (지역)"
+                    dataKey="시민·청년"
+                    stroke="#d32f2f"
+                    fill="#d32f2f"
+                    fillOpacity={0.7}
+                  />
               <Legend />
             </RadarChart>
           </ResponsiveContainer>
@@ -168,8 +166,6 @@ export default function Phase1({ meeting, onBack, onNext }: Phase1Props) {
         <PhaseGuide
           title="Phase 1 시연 가이드"
           purpose={phaseGuide.purpose}
-          inputs={phaseGuide.inputs}
-          outputs={phaseGuide.outputs}
           demoTips={phaseGuide.demoTips}
         />
       </div>

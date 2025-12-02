@@ -95,11 +95,21 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
     3: 'dropped'
   })
   const [showLogs, setShowLogs] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  
+  const showToast = (message: string) => {
+    setToastMessage(message)
+    setTimeout(() => setToastMessage(null), 3000)
+  }
+  
+  const handleBridgeStatusChange = (idx: number, status: 'adopted' | 'edited' | 'dropped') => {
+    setBridgeStatus({ ...bridgeStatus, [idx]: status })
+    const statusText = status === 'adopted' ? '채택' : status === 'edited' ? '수정' : '폐기'
+    showToast(`브릿지 문장 ${idx + 1}번이 "${statusText}"되었습니다. AI가 학습 중...`)
+  }
 
   const phaseGuide = {
     purpose: '논증을 구조화하고, 서로 다른 언어(리스크/전략)로 번역해 브릿지 문장을 제안합니다.',
-    inputs: ['양측 발언(논점, 근거)', '집단 A/B 구분 정보'],
-    outputs: ['전제-이유-결론-숨은 전제 구조', '리스크 관리 언어 번역', '전략적 전환 언어 번역', '브릿지 문장 3~5개'],
     demoTips: [
       '좌측/우측 컬러 대비로 두 집단 논리를 분리',
       '"숨은 전제"가 어떻게 드러나는지 강조',
@@ -127,8 +137,6 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
       <PhaseGuide
         title="Phase 2 시연 가이드"
         purpose={phaseGuide.purpose}
-        inputs={phaseGuide.inputs}
-        outputs={phaseGuide.outputs}
         demoTips={phaseGuide.demoTips}
       />
 
@@ -334,21 +342,21 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
                     <button
                       className={`btn ${status === 'adopted' ? 'btn-primary' : ''}`}
                       style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}
-                      onClick={() => setBridgeStatus({ ...bridgeStatus, [idx]: 'adopted' })}
+                      onClick={() => handleBridgeStatusChange(idx, 'adopted')}
                     >
                       채택
                     </button>
                     <button
                       className={`btn ${status === 'edited' ? 'btn-primary' : ''}`}
                       style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}
-                      onClick={() => setBridgeStatus({ ...bridgeStatus, [idx]: 'edited' })}
+                      onClick={() => handleBridgeStatusChange(idx, 'edited')}
                     >
                       수정
                     </button>
                     <button
                       className={`btn ${status === 'dropped' ? 'btn-primary' : ''}`}
                       style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}
-                      onClick={() => setBridgeStatus({ ...bridgeStatus, [idx]: 'dropped' })}
+                      onClick={() => handleBridgeStatusChange(idx, 'dropped')}
                     >
                       폐기
                     </button>
@@ -371,6 +379,26 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
           </div>
         </div>
       </div>
+
+      {/* 토스트 메시지 */}
+      {toastMessage && (
+        <div style={{
+          position: 'fixed',
+          bottom: '100px',
+          right: '20px',
+          background: '#4a90e2',
+          color: 'white',
+          padding: '1rem 1.5rem',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          zIndex: 1000,
+          animation: 'slideIn 0.3s ease-out',
+          fontSize: '1rem',
+          fontWeight: '500'
+        }}>
+          {toastMessage}
+        </div>
+      )}
 
       <TabletCTA onPrev={onBack} onNext={onNext} nextDisabled={false} nextLabel="다음 단계 → (Phase 3)" />
     </div>
