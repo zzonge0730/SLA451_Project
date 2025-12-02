@@ -9,6 +9,7 @@ type Meeting = {
 type Phase0ParticipantProps = {
   meeting: Meeting | null
   onBack: () => void
+  onNext?: () => void
 }
 
 type Message = {
@@ -32,7 +33,7 @@ const mockInterviewFlow = [
   }
 ]
 
-export default function Phase0Participant({ meeting, onBack }: Phase0ParticipantProps) {
+export default function Phase0Participant({ meeting, onBack, onNext }: Phase0ParticipantProps) {
   const [messages, setMessages] = useState<Message[]>([
     { speaker: 'ai', text: mockInterviewFlow[0].ai }
   ])
@@ -171,56 +172,87 @@ export default function Phase0Participant({ meeting, onBack }: Phase0Participant
                 </button>
               </div>
             ) : (
-              <div style={{ 
-                padding: '1rem', 
-                background: '#f0f7ff', 
-                borderRadius: '6px',
-                border: '1px solid #b8dce8',
-                textAlign: 'center'
-              }}>
-                <p style={{ color: '#2c5f7c', margin: 0 }}>
-                  인터뷰가 완료되었습니다. 우측에서 프로필 요약을 확인하세요.
-                </p>
+              <div>
+                <div style={{ 
+                  padding: '1rem', 
+                  background: '#f0f7ff', 
+                  borderRadius: '6px',
+                  border: '1px solid #b8dce8',
+                  textAlign: 'center',
+                  marginBottom: '1rem'
+                }}>
+                  <p style={{ color: '#2c5f7c', margin: 0 }}>
+                    인터뷰가 완료되었습니다. 우측에서 프로필 요약을 확인하세요.
+                  </p>
+                </div>
+                {onNext && (
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={onNext}
+                    style={{ width: '100%', fontSize: '1.1rem', padding: '1rem' }}
+                  >
+                    회의 참여 준비 완료 →
+                  </button>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* 우측: AI 프로필 요약 */}
+        {/* 우측: AI 프로필 요약 (인터뷰 완료 후 표시) */}
         <div>
-          <div className="card">
-            <h2 className="card-title">AI가 분석한 내 프로필</h2>
-            
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>역할:</strong>
-              <p style={{ marginTop: '0.25rem', color: '#555' }}>
-                {mockProfileSummary.role}
-              </p>
-            </div>
+          {interviewComplete ? (
+            <div className="card">
+              <h2 className="card-title">AI가 분석한 내 프로필</h2>
+              
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>역할:</strong>
+                <p style={{ marginTop: '0.25rem', color: '#555' }}>
+                  {mockProfileSummary.role}
+                </p>
+              </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>핵심 가치:</strong>
-              <p style={{ marginTop: '0.25rem', color: '#555' }}>
-                {mockProfileSummary.coreValues}
-              </p>
-            </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>핵심 가치:</strong>
+                <p style={{ marginTop: '0.25rem', color: '#555' }}>
+                  {mockProfileSummary.coreValues}
+                </p>
+              </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>주요 감정:</strong>
-              <p style={{ marginTop: '0.25rem', color: '#555' }}>
-                {mockProfileSummary.mainEmotions}
-              </p>
-            </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>주요 감정:</strong>
+                <p style={{ marginTop: '0.25rem', color: '#555' }}>
+                  {mockProfileSummary.mainEmotions}
+                </p>
+              </div>
 
-            <div className="divider"></div>
+              <div className="divider"></div>
 
-            <div>
-              <strong>한 줄 요약:</strong>
-              <p style={{ marginTop: '0.5rem', color: '#555', lineHeight: '1.6' }}>
-                {mockProfileSummary.summary}
-              </p>
+              <div>
+                <strong>한 줄 요약:</strong>
+                <p style={{ marginTop: '0.5rem', color: '#555', lineHeight: '1.6' }}>
+                  {mockProfileSummary.summary}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="card" style={{ 
+              background: '#f9f9f9', 
+              border: '1px dashed #ddd',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '400px'
+            }}>
+              <div style={{ textAlign: 'center', color: '#999' }}>
+                <p style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>⏳</p>
+                <p style={{ fontSize: '0.9rem' }}>
+                  인터뷰를 완료하면<br />
+                  AI 프로필 요약이 여기에 표시됩니다.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

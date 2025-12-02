@@ -235,51 +235,70 @@ export default function Phase0({ meeting, onBack, onNext }: Phase0Props) {
           </div>
         </div>
 
-        {/* 우측: AI 프로필 요약 */}
+        {/* 우측: AI 프로필 요약 (인터뷰 완료 후 표시) */}
         <div className="analysis-panel">
-          <div className="card">
-            <h2 className="card-title">AI 프로필 요약</h2>
-            
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>역할:</strong>
-              <p style={{ marginTop: '0.25rem', color: '#555' }}>
-                {mockProfileSummary.role}
-              </p>
+          {interviewComplete ? (
+            <div className="card">
+              <h2 className="card-title">AI 프로필 요약</h2>
+              
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>역할:</strong>
+                <p style={{ marginTop: '0.25rem', color: '#555' }}>
+                  {mockProfileSummary.role}
+                </p>
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>핵심 가치:</strong>
+                <p style={{ marginTop: '0.25rem', color: '#555' }}>
+                  {mockProfileSummary.coreValues}
+                </p>
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <strong>주요 감정:</strong>
+                <p style={{ marginTop: '0.25rem', color: '#555' }}>
+                  {mockProfileSummary.mainEmotions}
+                </p>
+              </div>
+
+              <div className="divider"></div>
+
+              <div>
+                <strong>한 줄 요약:</strong>
+                <p style={{ marginTop: '0.5rem', color: '#555', lineHeight: '1.6' }}>
+                  {mockProfileSummary.summary}
+                </p>
+              </div>
+
+              <div className="divider"></div>
+
+              <div>
+                <strong style={{ fontSize: '0.9rem' }}>AI Agent용 메모:</strong>
+                <ul style={{ marginTop: '0.5rem', paddingLeft: '1.5rem', fontSize: '0.9rem', color: '#666' }}>
+                  <li>이 사람에게 질문할 때: "희생"이라는 키워드를 공감하되 "정책적 대안"으로 유도</li>
+                  <li>의견 이끌어낼 때: 생활 밀착형 사례를 들도록 요청</li>
+                </ul>
+              </div>
             </div>
-
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>핵심 가치:</strong>
-              <p style={{ marginTop: '0.25rem', color: '#555' }}>
-                {mockProfileSummary.coreValues}
-              </p>
+          ) : (
+            <div className="card" style={{ 
+              background: '#f9f9f9', 
+              border: '1px dashed #ddd',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '400px'
+            }}>
+              <div style={{ textAlign: 'center', color: '#999' }}>
+                <p style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>⏳</p>
+                <p style={{ fontSize: '0.9rem' }}>
+                  인터뷰를 완료하면<br />
+                  AI 프로필 요약이 여기에 표시됩니다.
+                </p>
+              </div>
             </div>
-
-            <div style={{ marginBottom: '1rem' }}>
-              <strong>주요 감정:</strong>
-              <p style={{ marginTop: '0.25rem', color: '#555' }}>
-                {mockProfileSummary.mainEmotions}
-              </p>
-            </div>
-
-            <div className="divider"></div>
-
-            <div>
-              <strong>한 줄 요약:</strong>
-              <p style={{ marginTop: '0.5rem', color: '#555', lineHeight: '1.6' }}>
-                {mockProfileSummary.summary}
-              </p>
-            </div>
-
-            <div className="divider"></div>
-
-            <div>
-              <strong style={{ fontSize: '0.9rem' }}>AI Agent용 메모:</strong>
-              <ul style={{ marginTop: '0.5rem', paddingLeft: '1.5rem', fontSize: '0.9rem', color: '#666' }}>
-                <li>이 사람에게 질문할 때: "희생"이라는 키워드를 공감하되 "정책적 대안"으로 유도</li>
-                <li>의견 이끌어낼 때: 생활 밀착형 사례를 들도록 요청</li>
-              </ul>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 

@@ -8,7 +8,9 @@ import Phase2 from './screens/Phase2'
 import Phase3 from './screens/Phase3'
 import Phase4 from './screens/Phase4'
 import Phase0Participant from './screens/Phase0Participant'
-import Phase3Participant from './screens/Phase3Participant'
+import ParticipantLiveScreen from './screens/ParticipantLiveScreen'
+import ParticipantTranslationScreen from './screens/ParticipantTranslationScreen'
+import ParticipantConsensusScreen from './screens/ParticipantConsensusScreen'
 
 type Screen = 
   | 'home'
@@ -19,7 +21,9 @@ type Screen =
   | 'phase-3'
   | 'phase-4'
   | 'phase-0-participant'
-  | 'phase-3-participant'
+  | 'participant-live'
+  | 'participant-translation'
+  | 'participant-consensus'
 
 type Meeting = {
   id: string
@@ -47,11 +51,15 @@ function App() {
         const { type, phase, meeting } = event.data
         
         if (type === 'PHASE_CHANGE') {
-          // 참가자는 특정 Phase만 입력 화면, 나머지는 대기/조회 화면으로 처리
-          if (phase === 0 || phase === 3) {
-            setCurrentScreen(`phase-${phase}-participant` as Screen)
-          } else {
-            setCurrentScreen(`phase-${phase}` as Screen)
+          // 참가자는 페르소나별 필요한 화면만 표시
+          if (phase === 0) {
+            setCurrentScreen('phase-0-participant')
+          } else if (phase >= 1 && phase <= 3) {
+            // Phase 1, 2, 3은 모두 Live Participation 화면
+            setCurrentScreen('participant-live')
+          } else if (phase === 4) {
+            // Phase 4는 합의문 피드백 화면
+            setCurrentScreen('participant-consensus')
           }
         }
         
@@ -90,12 +98,13 @@ function App() {
         channelRef.current.postMessage({ type: 'PHASE_CHANGE', phase })
       }
     } else {
-      // 참가자는 스스로 이동 불가 (주관자 통제 따름)
-      // 테스트를 위해 허용할 수도 있음
-      if (phase === 0 || phase === 3) {
-        setCurrentScreen(`phase-${phase}-participant` as Screen)
-      } else {
-        setCurrentScreen(`phase-${phase}` as Screen)
+      // 참가자는 주관자 통제 따름 (테스트용으로만 직접 이동 가능)
+      if (phase === 0) {
+        setCurrentScreen('phase-0-participant')
+      } else if (phase >= 1 && phase <= 3) {
+        setCurrentScreen('participant-live')
+      } else if (phase === 4) {
+        setCurrentScreen('participant-consensus')
       }
     }
   }
@@ -175,15 +184,39 @@ function App() {
           onNext={() => handleNextPhase(4)}
         />
       )}
-      {/* 참가자용 Phase 화면들 (Phase0, Phase3만 별도 화면) */}
+      {/* 참가자용 화면들 (페르소나별 최소 화면 구성) */}
       {currentScreen === 'phase-0-participant' && (
         <Phase0Participant
           meeting={selectedMeeting}
           onBack={handleBackToPhaseSelector}
+          onNext={() => {
+            // 참가자는 Phase 1~3이 모두 Live Participation 화면
+            setCurrentScreen('participant-live')
+          }}
         />
       )}
-      {currentScreen === 'phase-3-participant' && (
-        <Phase3Participant
+      {currentScreen === 'participant-live' && (
+        <ParticipantLiveScreen
+          meeting={selectedMeeting}
+          onBack={handleBackToPhaseSelector}
+          onNext={() => {
+            // 참가자는 발언 완료 후 번역 화면으로
+            setCurrentScreen('participant-translation')
+          }}
+        />
+      )}
+      {currentScreen === 'participant-translation' && (
+        <ParticipantTranslationScreen
+          meeting={selectedMeeting}
+          onBack={handleBackToPhaseSelector}
+          onNext={() => {
+            // 번역 확인 후 합의문 화면으로
+            setCurrentScreen('participant-consensus')
+          }}
+        />
+      )}
+      {currentScreen === 'participant-consensus' && (
+        <ParticipantConsensusScreen
           meeting={selectedMeeting}
           onBack={handleBackToPhaseSelector}
         />

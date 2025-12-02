@@ -63,6 +63,66 @@ export default function PhaseSelector({
   onBack,
   userRole
 }: PhaseSelectorProps) {
+  // 참가자 모드: 간소화된 화면
+  if (userRole === 'participant') {
+    return (
+      <div>
+        <div className="page-header">
+          <button
+            className="btn"
+            onClick={onBack}
+            style={{ marginBottom: '1rem' }}
+          >
+            ← 홈으로
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+            <h1 className="page-title" style={{ marginBottom: 0 }}>{meeting.name}</h1>
+            <span className="tag" style={{ 
+              background: '#fff4e6',
+              borderColor: '#ffd4a3',
+              color: '#8b5a00'
+            }}>
+              참가자 모드
+            </span>
+          </div>
+          <p className="page-subtitle">{meeting.agenda}</p>
+        </div>
+
+        <div className="card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+          <h2 className="card-title" style={{ marginBottom: '1rem' }}>회의 참여 준비</h2>
+          <p className="text-muted" style={{ marginBottom: '2rem', fontSize: '1rem' }}>
+            페르소나: <strong>지역 시민단체 활동가</strong>
+          </p>
+          <div style={{ 
+            background: '#f8fbff', 
+            border: '1px solid #b8dce8', 
+            borderRadius: '8px',
+            padding: '1.5rem',
+            marginBottom: '2rem',
+            textAlign: 'left'
+          }}>
+            <p style={{ marginBottom: '0.75rem', color: '#555' }}>
+              <strong>참가자 화면 구성:</strong>
+            </p>
+            <ul style={{ paddingLeft: '1.5rem', color: '#555', lineHeight: '1.8' }}>
+              <li>사전 프로필 입력 (Phase 0)</li>
+              <li>발언하기 & AI 재구성 확인 (Phase 1~3)</li>
+              <li>합의문 피드백 & 성찰 (Phase 4)</li>
+            </ul>
+          </div>
+          <button
+            className="btn btn-primary"
+            onClick={() => onPhaseSelect(0)}
+            style={{ minWidth: '200px', fontSize: '1.1rem', padding: '1rem 2rem' }}
+          >
+            사전 프로필 입력 시작
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // 주관자 모드: 기존 PhaseSelector
   return (
     <div>
       <div className="page-header">
@@ -76,11 +136,11 @@ export default function PhaseSelector({
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
           <h1 className="page-title" style={{ marginBottom: 0 }}>{meeting.name}</h1>
           <span className="tag" style={{ 
-            background: userRole === 'moderator' ? '#e8f4f8' : '#fff4e6',
-            borderColor: userRole === 'moderator' ? '#b8dce8' : '#ffd4a3',
-            color: userRole === 'moderator' ? '#2c5f7c' : '#8b5a00'
+            background: '#e8f4f8',
+            borderColor: '#b8dce8',
+            color: '#2c5f7c'
           }}>
-            {userRole === 'moderator' ? '주관자 모드' : '참가자 모드'}
+            주관자 모드
           </span>
         </div>
         <p className="page-subtitle">{meeting.agenda}</p>
