@@ -15,22 +15,6 @@ type Phase2Props = {
   onNext: () => void
 }
 
-const mockExpert = { // 시민/청년 대표 (비판 측)
-  name: '시민·청년 (비판 측)',
-  premise: '국가 R&D는 국민 세금이며, 지역 주민의 삶과 연구자의 생존을 보장해야 한다.',
-  reason: '전략기술 몰빵은 지역 소멸을 가속화하고, 단기 성과주의는 연구 생태계를 황폐화시킨다.',
-  hiddenPremise: '성장보다 분배와 안정이 우선이며, 내가 배제된 성장은 의미가 없다.',
-  conclusion: '전략기술 예산 독점을 막고, 생활·안전 R&D와 인력 투자를 보장해야 한다.'
-}
-
-const mockOfficial = { // 정부/산업 대표 (추진 측)
-  name: '정부·산업 (추진 측)',
-  premise: '글로벌 기술 패권 경쟁에서 살아남으려면 선택과 집중이 불가피하다.',
-  reason: '나눠주기식 R&D로는 임팩트를 낼 수 없으며, 국가 경쟁력이 없으면 복지 재원도 없다.',
-  hiddenPremise: '낙수 효과는 유효하며, 지금의 희생이 나중에 더 큰 보상으로 돌아올 것이다.',
-  conclusion: '전략기술에 집중 투자하여 파이를 키우는 것이 최우선 과제다.'
-}
-
 const mockTranslationExpertToOfficial = {
   title: '시민/청년 → 정부를 위한 "리스크 관리 언어" 번역',
   risks: [
@@ -110,7 +94,6 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
     2: 'adopted',
     3: 'dropped'
   })
-  const [activeTab, setActiveTab] = useState<'expert' | 'official'>('expert')
   const [showLogs, setShowLogs] = useState(false)
 
   const phaseGuide = {
