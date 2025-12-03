@@ -13,32 +13,42 @@ type Phase1Props = {
   onNext: () => void
 }
 
-// 레이더 차트 데이터 (가치 프레임 시각화)
+// 레이더 차트 데이터 (참여자 4인 세부 시각화)
 const radarData = [
   { 
     value: 'ROI',
-    '정부·산업': 90,
-    '시민·청년': 30
+    '김국장(정부)': 85,
+    '박교수(과학)': 35,
+    '이상무(기업)': 95,
+    '정대표(시민)': 25
   },
   { 
     value: '형평성',
-    '정부·산업': 25,
-    '시민·청년': 95
+    '김국장(정부)': 30,
+    '박교수(과학)': 30,
+    '이상무(기업)': 20,
+    '정대표(시민)': 95
   },
   { 
     value: '지역생존권',
-    '정부·산업': 20,
-    '시민·청년': 90
+    '김국장(정부)': 25,
+    '박교수(과학)': 20,
+    '이상무(기업)': 15,
+    '정대표(시민)': 90
   },
   { 
     value: '장기성',
-    '정부·산업': 50,
-    '시민·청년': 85
+    '김국장(정부)': 55,
+    '박교수(과학)': 95,
+    '이상무(기업)': 45,
+    '정대표(시민)': 70
   },
   { 
     value: '단기성과',
-    '정부·산업': 95,
-    '시민·청년': 25
+    '김국장(정부)': 80,
+    '박교수(과학)': 25,
+    '이상무(기업)': 95,
+    '정대표(시민)': 30
   }
 ]
 
@@ -73,18 +83,36 @@ export default function Phase1({ meeting, onBack, onNext }: Phase1Props) {
               />
               <PolarRadiusAxis angle={90} domain={[0, 100]} />
                   <Radar
-                    name="정부·산업 (전문가)"
-                    dataKey="정부·산업"
-                    stroke="#607D8B"
-                    fill="#607D8B"
-                    fillOpacity={0.6}
+                    name="김국장(정부)"
+                    dataKey="김국장(정부)"
+                    stroke="#455A64"
+                    strokeWidth={2.5}
+                    fill="#455A64"
+                    fillOpacity={0.28}
                   />
                   <Radar
-                    name="시민·청년 (지역)"
-                    dataKey="시민·청년"
-                    stroke="#8D6E63"
-                    fill="#8D6E63"
-                    fillOpacity={0.6}
+                    name="박교수(과학)"
+                    dataKey="박교수(과학)"
+                    stroke="#1E88E5"
+                    strokeWidth={2}
+                    fill="#1E88E5"
+                    fillOpacity={0.18}
+                  />
+                  <Radar
+                    name="이상무(기업)"
+                    dataKey="이상무(기업)"
+                    stroke="#EF6C00"
+                    strokeWidth={2}
+                    fill="#EF6C00"
+                    fillOpacity={0.18}
+                  />
+                  <Radar
+                    name="정대표(시민)"
+                    dataKey="정대표(시민)"
+                    stroke="#2E7D32"
+                    strokeWidth={2}
+                    fill="#2E7D32"
+                    fillOpacity={0.20}
                   />
               <Legend />
             </RadarChart>
@@ -92,42 +120,73 @@ export default function Phase1({ meeting, onBack, onNext }: Phase1Props) {
         </div>
       </div>
 
-      {/* Row 2: Value Blocks (좌우 분리) */}
+      {/* Row 2: 개인별 가치 블록 (4인) */}
       <div className="grid grid-2" style={{ marginBottom: '2rem', gap: '1.5rem' }}>
-        {/* 좌측: 전문가 블록 */}
-        <div className="card" style={{ background: '#e3f2fd', border: '2px solid #2196f3' }}>
-          <h2 className="card-title" style={{ color: '#1565c0' }}>전문가 (정부·산업)</h2>
+        <div className="card" style={{ background: '#f9fbff', border: '1px solid #d9e4f5', borderLeft: '4px solid #455A64' }}>
+          <h2 className="card-title" style={{ color: '#37474F' }}>김국장 (정부)</h2>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
               <span style={{ position: 'absolute', left: 0 }}>•</span>
-              <strong style={{ color: '#1565c0' }}>효율성 강조</strong>
+              <strong style={{ color: '#37474F' }}>효율·재정 건전성</strong>
             </li>
             <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
               <span style={{ position: 'absolute', left: 0 }}>•</span>
-              <strong style={{ color: '#1565c0' }}>투자집중 논리</strong>
+              <strong style={{ color: '#37474F' }}>우수성 유지</strong>
             </li>
             <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
               <span style={{ position: 'absolute', left: 0 }}>•</span>
-              <strong style={{ color: '#1565c0' }}>글로벌 경쟁력</strong>
+              <strong style={{ color: '#37474F' }}>구조 급변 회피</strong>
             </li>
           </ul>
         </div>
-
-        {/* 우측: 시민/지역 블록 */}
-        <div className="card" style={{ background: '#e8f5e9', border: '2px solid #4caf50' }}>
-          <h2 className="card-title" style={{ color: '#2e7d32' }}>시민/지역 (참여자)</h2>
+        <div className="card" style={{ background: '#f9fbff', border: '1px solid #d9e4f5', borderLeft: '4px solid #1E88E5' }}>
+          <h2 className="card-title" style={{ color: '#1E88E5' }}>박교수 (과학)</h2>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
               <span style={{ position: 'absolute', left: 0 }}>•</span>
-              <strong style={{ color: '#2e7d32' }}>형평성 강조</strong>
+              <strong style={{ color: '#1E88E5' }}>장기성·기초 연구</strong>
             </li>
             <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
               <span style={{ position: 'absolute', left: 0 }}>•</span>
-              <strong style={{ color: '#2e7d32' }}>지역생존권</strong>
+              <strong style={{ color: '#1E88E5' }}>우수성/클러스터</strong>
             </li>
             <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
               <span style={{ position: 'absolute', left: 0 }}>•</span>
-              <strong style={{ color: '#2e7d32' }}>안전·생활 기반 우선</strong>
+              <strong style={{ color: '#1E88E5' }}>생태계 안정</strong>
+            </li>
+          </ul>
+        </div>
+        <div className="card" style={{ background: '#fffaf4', border: '1px solid #ffe2c6', borderLeft: '4px solid #EF6C00' }}>
+          <h2 className="card-title" style={{ color: '#EF6C00' }}>이상무 (기업)</h2>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 0 }}>•</span>
+              <strong style={{ color: '#EF6C00' }}>ROI·단기성과</strong>
+            </li>
+            <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 0 }}>•</span>
+              <strong style={{ color: '#EF6C00' }}>시장 진입 속도</strong>
+            </li>
+            <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 0 }}>•</span>
+              <strong style={{ color: '#EF6C00' }}>글로벌 경쟁</strong>
+            </li>
+          </ul>
+        </div>
+        <div className="card" style={{ background: '#f3fbf5', border: '1px solid #d4eadc', borderLeft: '4px solid #2E7D32' }}>
+          <h2 className="card-title" style={{ color: '#2E7D32' }}>정대표 (시민)</h2>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 0 }}>•</span>
+              <strong style={{ color: '#2E7D32' }}>형평성</strong>
+            </li>
+            <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 0 }}>•</span>
+              <strong style={{ color: '#2E7D32' }}>지역 생존권</strong>
+            </li>
+            <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 0 }}>•</span>
+              <strong style={{ color: '#2E7D32' }}>생활·안전 우선</strong>
             </li>
           </ul>
         </div>
