@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import LogPanel from '../components/LogPanel'
 import TabletCTA from '../components/TabletCTA'
 
@@ -14,48 +14,55 @@ type Phase2Props = {
   onNext: () => void
 }
 
-const mockTranslationExpertToOfficial = {
-  title: '시민/청년 → 정부를 위한 "리스크 관리 언어" 번역',
-  risks: [
-    {
-      type: '정책 정당성 리스크',
-      content: '지역 주민과 청년 연구자가 배제된 R&D는 "그들만의 리그"로 인식되어, 장기적인 정책 지지를 잃을 수 있습니다.'
-    },
-    {
-      type: '사회 통합 리스크',
-      content: '지역 간 격차가 심화되면 "국가 R&D 무용론"이나 조세 저항 같은 사회적 갈등 비용이 발생합니다.'
-    },
-    {
-      type: '연구 생태계 붕괴 리스크',
-      content: '단기 성과에만 집착하면 도전적 연구가 사라지고, 인재들이 해외로 유출되어 결국 기술 경쟁력도 잃게 됩니다.'
-    }
-  ],
-  conclusion: '따라서 전략기술 투자와 별도로, 생활·안전 R&D와 인력 투자를 "사회적 안전망" 차원에서 필수적으로 확보해야 합니다.'
+type ScenarioTurn = {
+  speaker: string
+  original: string
+  without: string
+  withAI: string
+  reactionBefore: string
+  reactionAfter: string
+  aiTags: string[]
+  step: string
 }
 
-const mockTranslationOfficialToExpert = {
-  title: '정부 → 시민을 위한 "전략적 전환 언어" 번역',
-  strategy: [
-    {
-      step: '최종 목표',
-      content: '기술 경쟁력 확보를 통해 세수와 일자리를 늘려, 결국 국민 삶의 질과 복지를 향상시키는 것'
-    },
-    {
-      step: '선투자 전략',
-      content: '지금은 골든타임이므로 전략기술에 선투자하여 재원을 확보하려는 것이며, 지역 소외가 목적이 아님'
-    },
-    {
-      step: '제도적 보완',
-      content: '전략기술 성과가 지역과 생활 안전으로 환류될 수 있도록, 예산 배분 구조와 평가 체계를 함께 개선하겠음'
-    }
-  ]
-}
+const turns: ScenarioTurn[] = [
+  {
+    speaker: '정대표(정부)',
+    original: '“PIM 반도체와 엑사스케일 확보가 시급합니다.”',
+    without: '전문용어만 반복 → 시민: “또 어려운 말… 우리 지역은 왜 배제되죠?”',
+    withAI: 'AI가 “돌봄 로봇·재난예측을 위한 기반 기술”로 번역 + ROI 대신 “안전 인프라” 프레이밍',
+    reactionBefore: '반응(시민): 방어적 태도, 갈등 지수 상승',
+    reactionAfter: '반응(시민): “아, 생활·안전에 직접 닿는 거네요.” 공감 형성',
+    aiTags: ['전문용어', '긴급성 프레이밍', '가치: 안전'],
+    step: 'Step1-2'
+  },
+  {
+    speaker: '시민 패널',
+    original: '“지역은 늘 뒷순위예요. 실질적 혜택이 없잖아요.”',
+    without: '감정적 표현 그대로 전달 → 정부: “지역 나눠주기는 비효율적입니다.”',
+    withAI: 'AI가 감정 태깅(불안/형평) 후 “생활·안전 R&D 비중 명시”로 재작성',
+    reactionBefore: '반응(정부): 방어적, 논점 이탈',
+    reactionAfter: '반응(정부): “C바스켓 최소 비율을 명시하겠습니다.” 조건부 합의',
+    aiTags: ['감정: 불안', '가치: 형평', '정책 조건'],
+    step: 'Step2-3'
+  },
+  {
+    speaker: '정대표(정부)',
+    original: '“전략기술에 선투자해야 세수를 확보합니다.”',
+    without: '시민: “결국 성장만 보고 복지는 나중?” → 갈등 심화',
+    withAI: 'AI가 “선투자 후 지역 환류” 시나리오 제시 + 평가위원회 공동 설계 제안',
+    reactionBefore: '반응(시민): 합의 지점 없음',
+    reactionAfter: '반응(시민): “지역 환류 로드맵을 넣으면 동의합니다.”',
+    aiTags: ['재프레이밍', '조건부 합의', '프로세스 제안'],
+    step: 'Step3-5'
+  }
+]
 
-const mockBridgeSentences = [
+const bridgeSentences = [
   '예산을 3바스켓(A:전략기술 / B:응용 / C:생활·안전·기초)으로 구분하여 관리한다.',
-  '전략기술(A)에 집중하되, Phase0에서 제기된 "지역 생존권" 우려를 반영하여 생활·안전·기초(C) 바스켓은 전체의 최소 N% 이상을 의무 배정한다.',
-  '단기 성과 지표 대신, 청년 연구자와 시민이 참여하는 새로운 평가위원회 시범사업을 도입한다.',
-  '지역 R&D는 나눠주기가 아니라 "지역 특화형 전략산업"과 연계하여 실효성을 높인다.'
+  '전략기술(A)에 집중하되, 생활·안전·기초(C) 바스켓은 전체의 최소 N% 이상 의무 배정한다.',
+  '청년 연구자·시민이 참여하는 평가위원회 시범사업을 도입한다.',
+  '지역 R&D는 나눠주기가 아니라 “지역 특화형 전략산업”과 연계한다.'
 ]
 
 const mockLogs = [
@@ -70,18 +77,13 @@ const mockLogs = [
     type: 'input' as const
   },
   {
-    label: 'AI 출력 – 리스크 관리 번역',
-    content: '정책 정당성 리스크, 사회 통합 리스크, 연구 생태계 붕괴 리스크...',
-    type: 'output' as const
-  },
-  {
-    label: 'AI 출력 – 전략적 전환 번역',
-    content: '최종 목표는 삶의 질 향상, 선투자 후환류 전략, 제도적 보완 약속...',
+    label: 'AI 출력 – 가치/감정 태깅',
+    content: '[전문용어][긴급성][형평성][불안] 태깅 → 재프레이밍 제안',
     type: 'output' as const
   },
   {
     label: 'AI 출력 – 브릿지 문장',
-    content: '예산 3바스켓 구조 / C바스켓 최소 비율 / 평가위원회 시범사업...',
+    content: '예산 3바스켓, C바스켓 최소 비율, 평가위원회 시범사업...',
     type: 'output' as const
   }
 ]
@@ -93,69 +95,116 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
     2: 'adopted',
     3: 'dropped'
   })
-  const [showLogs, setShowLogs] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [showOriginal, setShowOriginal] = useState(false)
-  const [showKeywords, setShowKeywords] = useState(false)
-  const [translationText, setTranslationText] = useState('')
-  const [skipAnimation, setSkipAnimation] = useState(false)
-  
-  // 번역 과정 시각화
+  const [showLogs, setShowLogs] = useState(false)
+  const [activeView, setActiveView] = useState<'with' | 'without'>('with')
+  const [isWide, setIsWide] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true
+    return window.innerWidth >= 1024
+  })
+
   useEffect(() => {
-    if (skipAnimation) {
-      setIsLoading(false)
-      setShowOriginal(true)
-      setShowKeywords(true)
-      setTranslationText(mockTranslationExpertToOfficial.risks[0].content)
-      return
-    }
+    const handleResize = () => setIsWide(window.innerWidth >= 1024)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
-    // 1초 후: 원문 표시
-    const timer1 = setTimeout(() => {
-      setIsLoading(false)
-      setShowOriginal(true)
-    }, 1000)
-
-    // 2초 후: 키워드 하이라이트
-    const timer2 = setTimeout(() => {
-      setShowKeywords(true)
-    }, 2000)
-
-    // 3초 후: 번역문 타이핑 효과
-    const timer3 = setTimeout(() => {
-      typewriterEffect(mockTranslationExpertToOfficial.risks[0].content, setTranslationText)
-    }, 3000)
-
-    return () => {
-      clearTimeout(timer1)
-      clearTimeout(timer2)
-      clearTimeout(timer3)
-    }
-  }, [skipAnimation])
-
-  const typewriterEffect = (text: string, setter: (value: string) => void) => {
-    let index = 0
-    const interval = setInterval(() => {
-      if (index < text.length) {
-        setter(text.substring(0, index + 1))
-        index++
-      } else {
-        clearInterval(interval)
-      }
-    }, 20) // 타이핑 속도
-  }
-  
   const showToast = (message: string) => {
     setToastMessage(message)
     setTimeout(() => setToastMessage(null), 3000)
   }
-  
+
   const handleBridgeStatusChange = (idx: number, status: 'adopted' | 'edited' | 'dropped') => {
     setBridgeStatus({ ...bridgeStatus, [idx]: status })
     const statusText = status === 'adopted' ? '채택' : status === 'edited' ? '수정' : '폐기'
     showToast(`브릿지 문장 ${idx + 1}번이 "${statusText}"되었습니다. AI가 학습 중...`)
   }
+
+  const conflictLevel = useMemo(
+    () => ({
+      without: 82,
+      withAI: 41
+    }),
+    []
+  )
+
+  const consensusLevel = useMemo(
+    () => ({
+      without: 24,
+      withAI: 68
+    }),
+    []
+  )
+
+  const renderTurnCard = (turn: ScenarioTurn, side: 'with' | 'without') => {
+    const isWithAI = side === 'with'
+    const bg = isWithAI ? '#F1F8F6' : '#FFF5F5'
+    const border = isWithAI ? '#52b788' : '#ef5350'
+    const title = isWithAI ? 'AI 개입 후' : 'AI 미개입'
+    const reaction = isWithAI ? turn.reactionAfter : turn.reactionBefore
+    const content = isWithAI ? turn.withAI : turn.without
+
+    return (
+      <div
+        key={`${turn.speaker}-${side}`}
+        style={{
+          background: bg,
+          border: `1px solid ${border}`,
+          borderRadius: '10px',
+          padding: '1rem',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontWeight: 700, color: '#263238', fontSize: '1rem' }}>{turn.speaker}</div>
+            <div style={{ fontSize: '0.9rem', color: '#607D8B' }}>{title} · {turn.step}</div>
+          </div>
+          <span
+            style={{
+              display: 'inline-block',
+              padding: '0.35rem 0.75rem',
+              background: isWithAI ? '#C8E6C9' : '#FFCDD2',
+              borderRadius: '16px',
+              color: isWithAI ? '#1B5E20' : '#B71C1C',
+              fontWeight: 600,
+              fontSize: '0.9rem'
+            }}
+          >
+            {isWithAI ? '공감/합의' : '갈등 심화'}
+          </span>
+        </div>
+        <div style={{ color: '#37474F', fontSize: '1rem', lineHeight: 1.5 }}>{turn.original}</div>
+        <div style={{ color: '#455A64', fontSize: '0.95rem', lineHeight: 1.6 }}>{content}</div>
+        <div style={{ color: '#546E7A', fontSize: '0.95rem', lineHeight: 1.5, fontWeight: 600 }}>
+          반응: {reaction}
+        </div>
+        {isWithAI && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem 0.5rem' }}>
+            {turn.aiTags.map((tag) => (
+              <span
+                key={tag}
+                className="tag"
+                style={{
+                  background: '#E0F2F1',
+                  borderColor: '#80CBC4',
+                  color: '#00695C',
+                  margin: 0
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const selectedSides = isWide ? (['without', 'with'] as const) : ([activeView] as const)
 
   return (
     <div>
@@ -191,244 +240,107 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
         )}
       </div>
 
-      {/* Section 1: 논쟁 구조도 */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div className="card">
-          <h2 className="card-title">논쟁 구조도</h2>
-          <div className="grid grid-2" style={{ marginTop: '1rem' }}>
-            {/* 좌측: 시민/참여자 논점 (감정/우려 기반) */}
-            <div>
-              <div style={{ 
-                padding: '1.25rem', 
-                background: '#e8f5e9', 
-                borderRadius: '8px',
-                border: '2px solid #4caf50',
-                height: '100%'
-              }}>
-                <h3 style={{ margin: '0 0 1rem 0', color: '#2e7d32', fontSize: '1.1rem', fontWeight: '700' }}>
-                  시민/참여자 논점
-                </h3>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: 0, color: '#2e7d32', fontWeight: 'bold' }}>•</span>
-                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>지역 소외</span>
-                  </li>
-                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: 0, color: '#2e7d32', fontWeight: 'bold' }}>•</span>
-                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>생활·안전 미반영</span>
-                  </li>
-                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: 0, color: '#2e7d32', fontWeight: 'bold' }}>•</span>
-                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>"성장" 명목 희생 우려</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* 우측: 전문가/정부 논점 (정책/데이터 기반) */}
-            <div>
-              <div style={{ 
-                padding: '1.25rem', 
-                background: '#e3f2fd', 
-                borderRadius: '8px',
-                border: '2px solid #2196f3',
-                height: '100%'
-              }}>
-                <h3 style={{ margin: '0 0 1rem 0', color: '#1565c0', fontSize: '1.1rem', fontWeight: '700' }}>
-                  전문가/정부 논점
-                </h3>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: 0, color: '#1565c0', fontWeight: 'bold' }}>•</span>
-                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>투자집중 필요성</span>
-                  </li>
-                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: 0, color: '#1565c0', fontWeight: 'bold' }}>•</span>
-                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>전략기술 우선</span>
-                  </li>
-                  <li style={{ marginBottom: '0.75rem', paddingLeft: '1.5rem', position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: 0, color: '#1565c0', fontWeight: 'bold' }}>•</span>
-                    <span style={{ color: '#555', fontSize: '0.95rem', lineHeight: '1.6' }}>ROI / 글로벌 경쟁</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
+      {/* 상단 지표 카드 */}
+      <div className="grid grid-2" style={{ marginBottom: '1.5rem' }}>
+        <div className="card" style={{ background: '#fffef7' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <h3 className="card-title" style={{ fontSize: '1.1rem', marginBottom: 0 }}>Conflict Level</h3>
+            <span className="tag" style={{ background: '#FFEBEE', borderColor: '#FFCDD2', color: '#C62828' }}>AI 미적용: {conflictLevel.without}</span>
           </div>
-          {/* 아래 화살표 */}
-          <div style={{ 
-            textAlign: 'center', 
-            marginTop: '1.5rem',
-            fontSize: '2rem',
-            color: '#666'
-          }}>
-            ↓
+          <div style={{ height: '10px', background: '#ffe0e0', borderRadius: '8px', overflow: 'hidden', marginBottom: '0.5rem' }}>
+            <div style={{ width: `${conflictLevel.without}%`, height: '100%', background: '#ef5350' }} />
           </div>
+          <div style={{ height: '10px', background: '#e0f2f1', borderRadius: '8px', overflow: 'hidden' }}>
+            <div style={{ width: `${conflictLevel.withAI}%`, height: '100%', background: '#26a69a' }} />
+          </div>
+          <div style={{ fontSize: '0.9rem', marginTop: '0.5rem', color: '#546E7A' }}>AI 개입 후 {conflictLevel.withAI}로 하락</div>
+        </div>
+        <div className="card" style={{ background: '#f7fffb' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <h3 className="card-title" style={{ fontSize: '1.1rem', marginBottom: 0 }}>Consensus Readiness</h3>
+            <span className="tag" style={{ background: '#E0F2F1', borderColor: '#80CBC4', color: '#00695C' }}>AI 적용: {consensusLevel.withAI}</span>
+          </div>
+          <div style={{ height: '10px', background: '#e0e0e0', borderRadius: '8px', overflow: 'hidden', marginBottom: '0.5rem' }}>
+            <div style={{ width: `${consensusLevel.without}%`, height: '100%', background: '#b0bec5' }} />
+          </div>
+          <div style={{ height: '10px', background: '#e0f2f1', borderRadius: '8px', overflow: 'hidden' }}>
+            <div style={{ width: `${consensusLevel.withAI}%`, height: '100%', background: '#43a047' }} />
+          </div>
+          <div style={{ fontSize: '0.9rem', marginTop: '0.5rem', color: '#546E7A' }}>AI 개입 후 {consensusLevel.withAI}로 상승</div>
         </div>
       </div>
 
-      {/* Section 2: AI Bridge (자동 번역) */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ 
-          textAlign: 'center', 
-          marginBottom: '1rem', 
-          fontSize: '1.5rem', 
-          color: '#666',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <span style={{ flex: 1 }}>▼ AI Bridge (자동 번역)</span>
-          {isLoading && (
-            <button
-              className="btn"
-              onClick={() => setSkipAnimation(true)}
-              style={{
-                fontSize: '0.85rem',
-                padding: '0.4rem 0.8rem',
-                background: '#fff',
-                border: '1px solid #ddd'
-              }}
-            >
-              건너뛰기
-            </button>
+      {/* 비교 뷰 헤더 */}
+      <div className="card" style={{ marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: isWide ? 'row' : 'column', gap: '0.75rem', alignItems: isWide ? 'center' : 'flex-start', justifyContent: 'space-between' }}>
+          <div>
+            <h2 className="card-title" style={{ marginBottom: '0.35rem' }}>1대1 분기 시나리오</h2>
+            <p className="text-muted" style={{ marginBottom: 0 }}>같은 발언이 AI 개입 유무에 따라 어떻게 바뀌는지 즉시 비교합니다.</p>
+          </div>
+          {!isWide && (
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                className={`btn ${activeView === 'without' ? 'btn-primary' : ''}`}
+                style={{ padding: '0.5rem 1rem', minHeight: 'auto', fontSize: '0.95rem' }}
+                onClick={() => setActiveView('without')}
+              >
+                AI 없음
+              </button>
+              <button
+                className={`btn ${activeView === 'with' ? 'btn-primary' : ''}`}
+                style={{ padding: '0.5rem 1rem', minHeight: 'auto', fontSize: '0.95rem' }}
+                onClick={() => setActiveView('with')}
+              >
+                AI 있음
+              </button>
+            </div>
           )}
         </div>
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 className="card-title" style={{ marginBottom: 0 }}>MediR&D의 번역 결과</h2>
-            {isLoading && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4a90e2' }}>
-                <div style={{
-                  width: '16px',
-                  height: '16px',
-                  border: '2px solid #4a90e2',
-                  borderTop: '2px solid transparent',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }} />
-                <span style={{ fontSize: '0.9rem' }}>AI가 양측의 발언을 분석 중입니다...</span>
-              </div>
-            )}
-          </div>
-          <div className="grid grid-2" style={{ marginTop: '1rem', gap: '1.5rem' }}>
-            {/* 좌측: 시민 발언 → 정부가 이해할 수 있는 언어로 */}
-            <div>
-              <div style={{ 
-                padding: '1rem', 
-                background: '#FBE9E7', 
-                borderRadius: '6px',
-                border: '1px solid #FFCCBC'
-              }}>
-            <h3 style={{ 
-              marginBottom: '1rem', 
-              color: '#8D6E63', 
-              fontSize: '1rem',
-              fontWeight: '600'
-            }}>
-              시민 → 정부 번역 (리스크 관리 언어)
-            </h3>
-                {isLoading ? (
-                  <div>
-                    <div style={{ 
-                      height: '20px', 
-                      background: '#e0e0e0', 
-                      borderRadius: '4px',
-                      marginBottom: '0.5rem',
-                      animation: 'pulse 1.5s ease-in-out infinite'
-                    }} />
-                    <div style={{ 
-                      height: '60px', 
-                      background: '#e0e0e0', 
-                      borderRadius: '4px',
-                      marginBottom: '1rem',
-                      animation: 'pulse 1.5s ease-in-out infinite'
-                    }} />
-                  </div>
-                ) : showOriginal ? (
-                  <>
-                    {mockTranslationExpertToOfficial.risks.map((risk, idx) => {
-                      const isFirst = idx === 0
-                      const displayText = isFirst && translationText ? translationText : risk.content
-                      const keywords = ['리스크', '정책', '지지', '갈등', '경쟁력']
-                      const highlightText = (text: string) => {
-                        if (!showKeywords) return text
-                        let highlighted = text
-                        keywords.forEach(keyword => {
-                          const regex = new RegExp(`(${keyword})`, 'g')
-                          highlighted = highlighted.replace(regex, `<mark style="background: #fff9c4; padding: 2px 4px; border-radius: 3px;">$1</mark>`)
-                        })
-                        return highlighted
-                      }
-                      return (
-                        <div key={idx} style={{ marginBottom: '1rem' }}>
-                          <strong style={{ fontSize: '0.9rem', color: '#8D6E63' }}>
-                            {risk.type}:
-                          </strong>
-                          <p 
-                            style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.9rem', lineHeight: '1.5' }}
-                            dangerouslySetInnerHTML={{ __html: highlightText(displayText) }}
-                          />
-                        </div>
-                      )
-                    })}
-                    <div className="divider" style={{ margin: '1rem 0' }}></div>
-                    <p style={{ color: '#555', fontSize: '0.9rem', lineHeight: '1.6', fontStyle: 'italic' }}>
-                      {mockTranslationExpertToOfficial.conclusion}
-                    </p>
-                  </>
-                ) : null}
-              </div>
-            </div>
-
-            {/* 우측: 정부 발언 → 시민이 받아들일 수 있는 언어로 */}
-            <div>
-              <div style={{ 
-                padding: '1rem', 
-                background: '#ECEFF1', 
-                borderRadius: '6px',
-                border: '1px solid #CFD8DC'
-              }}>
-            <h3 style={{ 
-              marginBottom: '1rem', 
-              color: '#546E7A', 
-              fontSize: '1rem',
-              fontWeight: '600'
-            }}>
-              정부 → 시민 번역 (전략적 전환 언어)
-            </h3>
-                {mockTranslationOfficialToExpert.strategy.map((item, idx) => (
-                  <div key={idx} style={{ marginBottom: '1rem' }}>
-                    <strong style={{ fontSize: '0.9rem', color: '#546E7A' }}>
-                      {item.step}:
-                    </strong>
-                    <p style={{ marginTop: '0.5rem', color: '#555', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                      {item.content}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* Section 3: 보조적 표현 후보 (채택/수정/폐기) */}
+      {/* 비교 영역 */}
+      <div className={isWide ? 'grid grid-2' : ''} style={{ gap: '1rem', marginBottom: '1.5rem' }}>
+        {selectedSides.map((side) => (
+          <div key={side} className="card" style={{ background: side === 'with' ? '#F5FBF9' : '#FFF7F7' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <div>
+                <h3 className="card-title" style={{ marginBottom: '0.25rem', fontSize: '1.2rem' }}>
+                  {side === 'with' ? 'AI 개입 후' : 'AI 미개입'}
+                </h3>
+                <p className="text-muted" style={{ marginBottom: 0 }}>
+                  {side === 'with' ? '태깅 → 번역 → 재프레이밍 → 조건부 합의' : '원문 그대로 전달 → 오해/방어'}
+                </p>
+              </div>
+              <span
+                className="tag"
+                style={{
+                  background: side === 'with' ? '#E0F2F1' : '#FFEBEE',
+                  borderColor: side === 'with' ? '#80CBC4' : '#FFCDD2',
+                  color: side === 'with' ? '#00695C' : '#C62828',
+                  margin: 0
+                }}
+              >
+                {side === 'with' ? '완충지대 활성화' : '완충지대 없음'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {turns.map((turn) => renderTurnCard(turn, side))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 브릿지 문장 선택 */}
       <div style={{ marginBottom: '2rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.5rem', color: '#666' }}>
-          ▼ 보조적 표현 후보
-        </div>
         <div className="card">
           <h2 className="card-title">브릿지 문장 제안 & 선택</h2>
-          <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
-            AI가 생성한 브릿지 문장 후보입니다. 각 문장에 대해 채택/수정/폐기를 선택하세요.
+          <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.95rem' }}>
+            AI가 제안한 조건부 합의 표현입니다. 채택/수정/폐기를 선택하면 지표가 업데이트됩니다.
           </p>
-              <p className="text-muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
-                양쪽이 부분적으로라도 수용할 수 있을 것 같은 브릿지 문장들입니다. 채택/수정/폐기 상태를 선택해 보여주세요.
-              </p>
-              <div className="grid grid-2">
-                {mockBridgeSentences.map((sentence, idx) => {
-                  const status = bridgeStatus[idx]
-                  return (
+          <div className="grid grid-2">
+            {bridgeSentences.map((sentence, idx) => {
+              const status = bridgeStatus[idx]
+              return (
                 <div
                   key={idx}
                   className="card"
@@ -448,21 +360,21 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button
                       className={`btn ${status === 'adopted' ? 'btn-primary' : ''}`}
-                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}
+                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', minHeight: '48px' }}
                       onClick={() => handleBridgeStatusChange(idx, 'adopted')}
                     >
                       채택
                     </button>
                     <button
                       className={`btn ${status === 'edited' ? 'btn-primary' : ''}`}
-                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}
+                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', minHeight: '48px' }}
                       onClick={() => handleBridgeStatusChange(idx, 'edited')}
                     >
                       수정
                     </button>
                     <button
                       className={`btn ${status === 'dropped' ? 'btn-primary' : ''}`}
-                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }}
+                      style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem', minHeight: '48px' }}
                       onClick={() => handleBridgeStatusChange(idx, 'dropped')}
                     >
                       폐기
