@@ -65,6 +65,9 @@ const mockNextSteps = [
 
 export default function Phase4({ meeting, onBack, onNext }: Phase4Props) {
   const [openIdx, setOpenIdx] = useState<number | null>(0)
+  const [satisfaction, setSatisfaction] = useState<number | null>(4)
+  const [helpfulness, setHelpfulness] = useState<number | null>(4)
+  const [comment, setComment] = useState('')
 
   return (
     <div>
@@ -163,6 +166,57 @@ export default function Phase4({ meeting, onBack, onNext }: Phase4Props) {
                 </li>
               ))}
             </ul>
+          </div>
+
+          {/* 참여자 설문 (AI 개입 후) */}
+          <div className="card" style={{ marginTop: '1.5rem', background: '#f9fbff', border: '1px solid #d9e4f5' }}>
+            <h3 className="card-title" style={{ fontSize: '1.1rem', color: '#1e3a8a' }}>
+              참여자 설문 (AI 개입 후)
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <label style={{ fontSize: '0.95rem', color: '#37474F' }}>
+                AI 개입이 이해/설득에 도움이 되었나요? (1~5)
+              </label>
+              <input
+                type="range"
+                min={1}
+                max={5}
+                value={helpfulness ?? 3}
+                onChange={(e) => setHelpfulness(Number(e.target.value))}
+              />
+              <div style={{ fontSize: '0.9rem', color: '#546E7A' }}>선택: {helpfulness}</div>
+
+              <label style={{ fontSize: '0.95rem', color: '#37474F' }}>
+                합의 결과에 얼마나 만족하시나요? (1~5)
+              </label>
+              <input
+                type="range"
+                min={1}
+                max={5}
+                value={satisfaction ?? 3}
+                onChange={(e) => setSatisfaction(Number(e.target.value))}
+              />
+              <div style={{ fontSize: '0.9rem', color: '#546E7A' }}>선택: {satisfaction}</div>
+
+              <label style={{ fontSize: '0.95rem', color: '#37474F' }}>
+                개선이 필요한 부분이 있다면 자유롭게 적어주세요.
+              </label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                style={{ width: '100%', minHeight: '90px', padding: '0.75rem', border: '1px solid #d9e4f5', borderRadius: '6px', fontSize: '0.95rem' }}
+                placeholder="예: 생활·안전 바스켓 비율을 더 높였으면 좋겠습니다."
+              />
+              <button
+                className="btn btn-primary"
+                style={{ minHeight: '48px', fontSize: '1rem' }}
+                onClick={() => {
+                  alert('설문 응답이 저장되었습니다. (데모용 안내)')
+                }}
+              >
+                설문 제출
+              </button>
+            </div>
           </div>
 
           {/* 합의 성격 안내 */}
