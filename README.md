@@ -1,73 +1,23 @@
-# React + TypeScript + Vite
+# SLA451 Project (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+프런트엔드 데모(갈등 해결 시나리오)용 Vite + React 프로젝트입니다.
 
-Currently, two official plugins are available:
+## 빠른 실행
+- `npm install`
+- `npm run dev` (프런트만 실행, `/api/chat`가 없으면 LLM은 모의 응답으로 동작)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## LLM 호출 방식을 서버리스로 분리 (Vercel)
+- 서버리스 엔드포인트: `api/chat.ts` (OpenAI 키는 서버 환경 변수에서만 읽습니다).
+- Vercel 프로젝트 설정
+  - Settings → Environment Variables에서 `OPENAI_API_KEY` 추가 (프리픽스 없이). 키는 절대 `VITE_`로 노출하지 않습니다.
+  - 일반 배포 시 프런트는 `/api/chat`으로만 호출하므로 키가 브라우저에 포함되지 않습니다.
+- 로컬에서 실제 OpenAI 호출이 필요하면:
+  - `npm install -g vercel` 후 `vercel login`
+  - `.env.local`에 `OPENAI_API_KEY=...` 저장
+  - `vercel dev`로 실행 (프런트 + 서버리스가 함께 동작)
+  - 단순 `npm run dev`는 `/api/chat`이 없어서 안전하게 모의 응답을 사용합니다.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 요청/응답 포맷
+- 요청 바디: `{ systemPrompt: string, userInput: string, model?: string }` (`apiKey`는 선택적 로컬 오버라이드용)
+- 응답: `{ content: string }`
+- 서버에 키가 없거나 로컬 dev에서 API 라우트가 없으면 프런트가 고정된 mock 응답으로 fallback 합니다.
