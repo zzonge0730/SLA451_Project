@@ -1,5 +1,19 @@
 /* 전역 스타일 - 와이어프레임 느낌의 깔끔한 디자인 */
 
+:root {
+  --color-primary: #455A64;
+  --color-primary-dark: #37474F;
+  --color-surface: #ffffff;
+  --color-border: #E0E0E0;
+  --color-muted: #444444;
+  --color-text: #222222;
+  --color-bg: #F5F7F8;
+  --color-expert-bg: #E3F2FD;
+  --color-expert-border: #2196F3;
+  --color-citizen-bg: #E8F5E9;
+  --color-citizen-border: #4CAF50;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -12,9 +26,9 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #F5F7F8;
-  color: #37474F;
-  line-height: 1.6; /* 발표용 가독성 확보 */
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.62; /* 발표용 가독성 확보 */
   font-size: 18px; /* 기본 폰트 사이즈 업 */
 }
 
@@ -39,19 +53,19 @@ body {
 .page-title {
   font-size: 1.8rem; /* 발표용 크기 확대 */
   font-weight: 600;
-  color: #263238;
+  color: var(--color-text);
   margin-bottom: 0.25rem;
 }
 
 .page-subtitle {
   font-size: 1rem;
-  color: #666;
+  color: var(--color-muted);
   margin-top: 0.5rem;
 }
 
 .phase-desc {
   font-size: 1.1rem;
-  color: #555;
+  color: var(--color-muted);
   font-weight: 500;
   margin-top: 0.25rem;
   margin-bottom: 0.5rem;
@@ -59,10 +73,10 @@ body {
 
 /* 카드 스타일 */
 .card {
-  background: white;
-  border: 1px solid #E0E0E0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  padding: 1.25rem;
+  padding: 1.75rem;
   margin-bottom: 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
@@ -71,11 +85,11 @@ body {
   font-size: 1.5rem; /* 발표용 크기 확대 */
   font-weight: 600;
   margin-bottom: 1rem;
-  color: #263238;
+  color: var(--color-text);
 }
 
 .card-content {
-  color: #263238; /* #555에서 변경 - 프로젝터 가독성 향상 */
+  color: var(--color-text); /* 프로젝터 가독성 향상 */
 }
 
 /* 분석 박스 스타일 (우측 패널 구분선) */
@@ -100,10 +114,10 @@ body {
   padding: 1rem 2rem; /* 패딩 증가 */
   font-size: 1.15rem; /* 폰트 크기 증가 */
   font-weight: 600;
-  border: 1px solid #ddd;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: white;
-  color: #333;
+  background: var(--color-surface);
+  color: var(--color-text);
   cursor: pointer;
   transition: all 0.2s;
   display: inline-flex;
@@ -124,15 +138,15 @@ body {
 }
 
 .btn-primary {
-  background-color: #455A64;
-  border-color: #455A64;
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
   color: white;
   box-shadow: 0 2px 6px rgba(69, 90, 100, 0.2);
 }
 
 .btn-primary:hover {
-  background-color: #37474F;
-  border-color: #37474F;
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
 }
 
 /* 그리드 레이아웃 */
@@ -158,7 +172,7 @@ body {
   display: block;
   font-weight: 500;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: var(--color-text);
 }
 
 .form-input,

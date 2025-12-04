@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import LogPanel from '../components/LogPanel'
 import TabletCTA from '../components/TabletCTA'
-import { bridgeSentences, mockLogs, turns } from '../data/scenario'
-import type { ScenarioTurn } from '../data/scenario'
+import { scenarioVariants } from '../data/scenario'
+import type { ScenarioLog, ScenarioMode, ScenarioTurn } from '../data/scenario'
+import { requestLLM } from '../utils/llmClient'
+import { buildMediatorPrompt } from '../utils/promptTemplates'
+import { IS_DEMO_MODE } from '../config'
 
 type Meeting = {
   id: string
@@ -14,15 +17,40 @@ type Phase2Props = {
   meeting: Meeting | null
   onBack: () => void
   onNext: () => void
+  scenarioMode: ScenarioMode
 }
 
-export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
-  const [bridgeStatus, setBridgeStatus] = useState<Record<number, 'adopted' | 'edited' | 'dropped'>>({
-    0: 'adopted',
-    1: 'edited',
-    2: 'adopted',
-    3: 'dropped'
-  })
+export default function Phase2({ meeting, onBack, onNext, scenarioMode }: Phase2Props) {
+  const activeScenario = useMemo(() => scenarioVariants[scenarioMode], [scenarioMode])
+  const [logItems, setLogItems] = useState<ScenarioLog[]>(activeScenario.logs)
+
+  // LLM controls (LLM 모드일 때만 사용)
+  const [tone, setTone] = useState<'diplomatic' | 'direct'>('diplomatic')
+  const [audience, setAudience] = useState<'citizen' | 'official'>('citizen')
+  const [userInput, setUserInput] = useState<string>('“지역은 늘 뒷순위예요. 안전장치가 없어요.”')
+  const [participantProfile, setParticipantProfile] = useState<string>('시민단체 · 지역 환류 강조 · 현 정책에 신뢰 낮음')
+  const [llmOutput, setLlmOutput] = useState<string>('')
+  const [parsedLlm, setParsedLlm] = useState<{
+    sentiment?: string
+    value_tags?: string[]
+    fallacy?: string
+    rewrite?: string
+    consensus_stub?: string
+    minority_note?: string
+  } | null>(null)
+  const [llmError, setLlmError] = useState<string>('')
+  const [llmLoading, setLlmLoading] = useState<boolean>(false)
+
+  const createBridgeStatus = (defaults: Array<'adopted' | 'edited' | 'dropped'>) => {
+    return defaults.reduce<Record<number, 'adopted' | 'edited' | 'dropped'>>((acc, status, idx) => {
+      acc[idx] = status
+      return acc
+    }, {})
+  }
+
+  const [bridgeStatus, setBridgeStatus] = useState<Record<number, 'adopted' | 'edited' | 'dropped'>>(
+    () => createBridgeStatus(activeScenario.bridgeDefaults)
+  )
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [showLogs, setShowLogs] = useState(false)
   const [activeView, setActiveView] = useState<'with' | 'without'>('with')
@@ -37,6 +65,13 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  useEffect(() => {
+    setBridgeStatus(createBridgeStatus(activeScenario.bridgeDefaults))
+    setLogItems(activeScenario.logs)
+    setLlmOutput('')
+    setLlmError('')
+  }, [activeScenario])
+
   const showToast = (message: string) => {
     setToastMessage(message)
     setTimeout(() => setToastMessage(null), 3000)
@@ -50,19 +85,80 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
 
   const conflictLevel = useMemo(
     () => ({
-      without: 82,
-      withAI: 41
+      without: activeScenario.metrics.conflictWithout,
+      withAI: activeScenario.metrics.conflictWithAI
     }),
-    []
+    [activeScenario]
   )
 
   const consensusLevel = useMemo(
     () => ({
-      without: 24,
-      withAI: 68
+      without: activeScenario.metrics.consensusWithout,
+      withAI: activeScenario.metrics.consensusWithAI
     }),
-    []
+    [activeScenario]
   )
+
+  const systemPromptTemplate = useMemo(
+    () => buildMediatorPrompt({ tone, audience, participantProfile }),
+    [tone, audience, participantProfile]
+  )
+
+  const safeParseLlmJson = (raw: string) => {
+    try {
+      const trimmed = raw.replace(/```json/gi, '').replace(/```/g, '').trim()
+      const start = trimmed.indexOf('{')
+      const end = trimmed.lastIndexOf('}')
+      if (start === -1 || end === -1) return null
+      const candidate = trimmed.slice(start, end + 1)
+      return JSON.parse(candidate) as {
+        sentiment?: string
+        value_tags?: string[]
+        fallacy?: string
+        rewrite?: string
+        consensus_stub?: string
+        minority_note?: string
+      }
+    } catch (e) {
+      return null
+    }
+  }
+
+  const handleRunLLM = async () => {
+    setLlmLoading(true)
+    setLlmError('')
+    try {
+      const result = await requestLLM({
+        systemPrompt: systemPromptTemplate,
+        userInput
+      })
+      setLlmOutput(result.content)
+      setParsedLlm(safeParseLlmJson(result.content))
+      setLogItems([
+        {
+          label: 'System prompt (live)',
+          content: systemPromptTemplate,
+          type: 'input'
+        },
+        {
+          label: 'User 입력 (live)',
+          content: userInput,
+          type: 'input'
+        },
+        {
+          label: result.usedMock ? 'LLM 출력 (mock fallback)' : 'LLM 출력',
+          content: result.content,
+          type: 'output'
+        }
+      ])
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'LLM 요청 중 알 수 없는 오류'
+      setLlmError(message)
+      setParsedLlm(null)
+    } finally {
+      setLlmLoading(false)
+    }
+  }
 
   const renderTurnCard = (turn: ScenarioTurn, side: 'with' | 'without') => {
     const isWithAI = side === 'with'
@@ -152,21 +248,144 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
       </div>
 
       <div className="card" style={{ marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 className="card-title" style={{ fontSize: '1rem', marginBottom: 0 }}>입출력 로그 보기</h3>
-          <button className="btn" style={{ minWidth: '120px' }} onClick={() => setShowLogs(!showLogs)}>
-            {showLogs ? '숨기기' : '열기'}
-          </button>
-        </div>
-        {showLogs && (
-          <div style={{ marginTop: '0.75rem' }}>
-            <LogPanel
-              description="시스템/사용자 입력과 AI 출력 흐름을 함께 보여주는 로그입니다."
-              logs={mockLogs}
-            />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+          <div>
+            <h3 className="card-title" style={{ fontSize: '1rem', marginBottom: '0.35rem' }}>시나리오 소스</h3>
+            <p className="text-muted" style={{ marginBottom: 0 }}>{activeScenario.description}</p>
           </div>
-        )}
+          <span className="tag" style={{ background: '#eef4ff', borderColor: '#cddcff', color: '#1f3b80' }}>
+            {scenarioMode === 'llm' ? 'LLM 모드 (Home에서 설정)' : '하드코딩 데모 (Home에서 설정)'}
+          </span>
+        </div>
       </div>
+
+      {scenarioMode === 'llm' && (
+        <div className="card" style={{ marginBottom: '1rem', background: '#f7fbff' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', gap: '0.5rem' }}>
+            <div>
+              <h3 className="card-title" style={{ fontSize: '1rem', marginBottom: '0.35rem' }}>LLM 프롬프트 콘솔</h3>
+              <p className="text-muted" style={{ marginBottom: 0 }}>톤·대상·입력을 바꿔 LLM 출력/로그를 즉시 확인합니다.</p>
+            </div>
+            <span className="tag" style={{ background: '#e3f2fd', borderColor: '#bbdefb', color: '#1a73e8', margin: 0 }}>
+              Live LLM / mock fallback
+            </span>
+          </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.9rem', color: '#455a64' }}>톤</label>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <button
+                      className={`btn ${tone === 'diplomatic' ? 'btn-primary' : ''}`}
+                      style={{ padding: '0.45rem 0.9rem' }}
+                      onClick={() => setTone('diplomatic')}
+                    >
+                      부드럽게
+                    </button>
+                    <button
+                      className={`btn ${tone === 'direct' ? 'btn-primary' : ''}`}
+                      style={{ padding: '0.45rem 0.9rem' }}
+                      onClick={() => setTone('direct')}
+                    >
+                      직설적
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.9rem', color: '#455a64' }}>대상</label>
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <button
+                      className={`btn ${audience === 'citizen' ? 'btn-primary' : ''}`}
+                      style={{ padding: '0.45rem 0.9rem' }}
+                      onClick={() => setAudience('citizen')}
+                    >
+                      시민/커뮤니티
+                    </button>
+                    <button
+                      className={`btn ${audience === 'official' ? 'btn-primary' : ''}`}
+                      style={{ padding: '0.45rem 0.9rem' }}
+                      onClick={() => setAudience('official')}
+                    >
+                      정부/공무원
+                    </button>
+                  </div>
+                </div>
+              </div>
+            <div>
+              <label style={{ fontSize: '0.9rem', color: '#455a64' }}>입력 발언</label>
+              <textarea
+                className="form-control"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                rows={3}
+                placeholder="발언을 입력하면 LLM이 JSON 태깅+재작성"
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.9rem', color: '#455a64' }}>참여자 프로필(맥락)</label>
+              <input
+                className="form-control"
+                value={participantProfile}
+                onChange={(e) => setParticipantProfile(e.target.value)}
+                placeholder="직업/이해관계/입장"
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button className="btn btn-primary" onClick={handleRunLLM} disabled={llmLoading}>
+                {llmLoading ? 'LLM 호출 중...' : 'LLM 실행'}
+              </button>
+              <span className="text-muted" style={{ fontSize: '0.9rem' }}>
+                API 키 없으면 모크 출력이 표시됩니다.
+              </span>
+            </div>
+            {llmError && <div style={{ color: '#c62828', fontSize: '0.9rem' }}>LLM 오류: {llmError}</div>}
+            {llmOutput && (
+              <>
+                {parsedLlm && (
+                  <div className="card" style={{ background: '#f9fbff', border: '1px solid #cde4ff' }}>
+                    <div style={{ fontWeight: 700, marginBottom: '0.35rem' }}>LLM 구조화 결과(JSON)</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.95rem' }}>
+                      <div><strong>감정:</strong> {parsedLlm.sentiment || '—'}</div>
+                      <div><strong>가치 태그:</strong> {(parsedLlm.value_tags || []).join(', ') || '—'}</div>
+                      <div><strong>논리 오류:</strong> {parsedLlm.fallacy || '—'}</div>
+                      <div><strong>재작성:</strong> {parsedLlm.rewrite || '—'}</div>
+                      <div><strong>합의 스텁:</strong> {parsedLlm.consensus_stub || '—'}</div>
+                      <div><strong>소수 의견:</strong> {parsedLlm.minority_note || '—'}</div>
+                    </div>
+                  </div>
+                )}
+                <div className="card" style={{ background: '#fff', border: '1px solid #cde4ff' }}>
+                  <div style={{ fontWeight: 700, marginBottom: '0.35rem' }}>LLM 출력 (원문)</div>
+                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{llmOutput}</pre>
+                </div>
+              </>
+            )}
+            <details className="card" style={{ background: '#fff', border: '1px dashed #d0e2ff' }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 600, color: '#1a73e8' }}>프롬프트 미리보기</summary>
+              <pre style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5, paddingTop: '0.5rem' }}>{systemPromptTemplate}</pre>
+            </details>
+          </div>
+        </div>
+      )}
+
+      {IS_DEMO_MODE && (
+        <div className="card" style={{ marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 className="card-title" style={{ fontSize: '1rem', marginBottom: 0 }}>입출력 로그 보기</h3>
+            <button className="btn" style={{ minWidth: '120px' }} onClick={() => setShowLogs(!showLogs)}>
+              {showLogs ? '숨기기' : '열기'}
+            </button>
+          </div>
+          {showLogs && (
+            <div style={{ marginTop: '0.75rem' }}>
+              <LogPanel
+                description={`${activeScenario.label} 기준 시스템/사용자 입력과 AI 출력 흐름입니다.`}
+                logs={logItems}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 상단 지표 카드 */}
       <div className="grid grid-2" style={{ marginBottom: '1.5rem' }}>
@@ -252,7 +471,7 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
               </span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {turns.map((turn) => renderTurnCard(turn, side))}
+              {activeScenario.turns.map((turn) => renderTurnCard(turn, side))}
             </div>
           </div>
         ))}
@@ -266,7 +485,7 @@ export default function Phase2({ meeting, onBack, onNext }: Phase2Props) {
             AI가 제안한 조건부 합의 표현입니다. 채택/수정/폐기를 선택하면 지표가 업데이트됩니다.
           </p>
           <div className="grid grid-2">
-            {bridgeSentences.map((sentence, idx) => {
+            {activeScenario.bridgeSentences.map((sentence, idx) => {
               const status = bridgeStatus[idx]
               return (
                 <div

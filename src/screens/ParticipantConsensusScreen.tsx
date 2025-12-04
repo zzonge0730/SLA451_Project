@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { FaFileContract, FaCheckCircle, FaExclamationTriangle, FaTimesCircle } from 'react-icons/fa'
 import StepIndicator from '../components/StepIndicator'
+import { requestLLM } from '../utils/llmClient'
+import { IS_DEMO_MODE } from '../config'
 
 type Meeting = {
   id: string
@@ -35,9 +37,22 @@ const mockReflectionQuestions = [
 
 export default function ParticipantConsensusScreen({ meeting, onBack }: ParticipantConsensusScreenProps) {
   const [agreementStatus, setAgreementStatus] = useState<'agree' | 'conditional' | 'disagree' | null>(null)
+  const [satisfaction, setSatisfaction] = useState<number>(5)
+  const [fairness, setFairness] = useState<'yes' | 'no' | 'partial'>('partial')
+  const [understanding, setUnderstanding] = useState<number>(3)
   const [remainingConcerns, setRemainingConcerns] = useState('')
+  const [freeFeedback, setFreeFeedback] = useState('')
   const [reflectionAnswers, setReflectionAnswers] = useState<Record<number, string>>({})
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [llmLoading, setLlmLoading] = useState(false)
+  const [llmError, setLlmError] = useState('')
+  const [llmRaw, setLlmRaw] = useState('')
+  const [llmParsed, setLlmParsed] = useState<{
+    sentiment?: string
+    key_issue?: string
+    unresolved_point?: string
+    suggestion_for_next?: string
+  } | null>(null)
   const channelRef = useRef<BroadcastChannel | null>(null)
   
   useEffect(() => {
@@ -50,18 +65,68 @@ export default function ParticipantConsensusScreen({ meeting, onBack }: Particip
       }
     }
   }, [])
-  
-  const handleSubmit = () => {
+
+  const systemPrompt = useMemo(
+    () =>
+      `You are an analyst summarizing feedback after a consensus meeting. Extract key signals from the user's free-text answer.\nReturn JSON only with: { "sentiment": "...", "key_issue": "...", "unresolved_point": "...", "suggestion_for_next": "..." }`,
+    []
+  )
+
+  const safeParse = (raw: string) => {
+    try {
+      const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim()
+      const start = cleaned.indexOf('{')
+      const end = cleaned.lastIndexOf('}')
+      if (start === -1 || end === -1) return null
+      return JSON.parse(cleaned.slice(start, end + 1)) as {
+        sentiment?: string
+        key_issue?: string
+        unresolved_point?: string
+        suggestion_for_next?: string
+      }
+    } catch (e) {
+      return null
+    }
+  }
+
+  const handleSubmit = async () => {
     setIsSubmitted(true)
-    // 주관자에게 피드백 전송
-    if (channelRef.current) {
-      channelRef.current.postMessage({ 
-        type: 'PARTICIPANT_CONSENSUS_FEEDBACK', 
-        participant: '지역 시민단체 활동가',
-        agreementStatus,
-        remainingConcerns,
-        reflectionAnswers
+    setLlmError('')
+    setLlmRaw('')
+    setLlmParsed(null)
+    setLlmLoading(true)
+
+    const payload = {
+      agreementStatus,
+      satisfaction,
+      fairness,
+      understanding,
+      remainingConcerns,
+      freeFeedback,
+      reflectionAnswers
+    }
+
+    try {
+      const result = await requestLLM({
+        systemPrompt,
+        userInput: freeFeedback || remainingConcerns || 'feedback: none'
       })
+      setLlmRaw(result.content)
+      setLlmParsed(safeParse(result.content))
+      // 주관자에게 피드백 전송
+      if (channelRef.current) {
+        channelRef.current.postMessage({ 
+          type: 'PARTICIPANT_CONSENSUS_FEEDBACK', 
+          participant: '지역 시민단체 활동가',
+          feedbackPayload: payload,
+          llmOutput: result.content
+        })
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'LLM 요청 중 오류'
+      setLlmError(message)
+    } finally {
+      setLlmLoading(false)
     }
   }
   
@@ -132,7 +197,7 @@ export default function ParticipantConsensusScreen({ meeting, onBack }: Particip
               </ul>
             </div>
             
-            <div>
+            <div style={{ marginBottom: '1.5rem' }}>
               <strong style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.95rem' }}>
                 이 합의안에 대한 의견:
               </strong>
@@ -178,6 +243,54 @@ export default function ParticipantConsensusScreen({ meeting, onBack }: Particip
                 </button>
               </div>
             </div>
+
+            <div style={{ marginTop: '1.5rem' }}>
+              <strong style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.95rem' }}>
+                빠른 평가(정량)
+              </strong>
+              <div style={{ display: 'grid', gap: '0.75rem' }}>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', color: '#455a64' }}>
+                  만족도 (1~10)
+                  <input
+                    type="range"
+                    min={1}
+                    max={10}
+                    value={satisfaction}
+                    onChange={(e) => setSatisfaction(Number(e.target.value))}
+                    disabled={isSubmitted}
+                  />
+                  <span style={{ fontWeight: 600 }}>현재: {satisfaction}</span>
+                </label>
+                <div>
+                  <div style={{ marginBottom: '0.35rem', color: '#455a64', fontWeight: 600 }}>절차적 공정성</div>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {(['yes', 'partial', 'no'] as const).map((opt) => (
+                      <button
+                        key={opt}
+                        className={`btn ${fairness === opt ? 'btn-primary' : ''}`}
+                        onClick={() => setFairness(opt)}
+                        disabled={isSubmitted}
+                        style={{ padding: '0.5rem 1rem' }}
+                      >
+                        {opt === 'yes' ? '예' : opt === 'partial' ? '부분적으로' : '아니오'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', color: '#455a64' }}>
+                  상호 이해도 (1~5)
+                  <input
+                    type="range"
+                    min={1}
+                    max={5}
+                    value={understanding}
+                    onChange={(e) => setUnderstanding(Number(e.target.value))}
+                    disabled={isSubmitted}
+                  />
+                  <span style={{ fontWeight: 600 }}>현재: {understanding}</span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -191,6 +304,21 @@ export default function ParticipantConsensusScreen({ meeting, onBack }: Particip
               placeholder="이 합의안에서 여전히 걱정되는 점이나 보완이 필요한 부분을 입력하세요..."
               value={remainingConcerns}
               onChange={(e) => setRemainingConcerns(e.target.value)}
+              disabled={isSubmitted}
+            />
+          </div>
+
+          <div className="card" style={{ marginBottom: '1.5rem' }}>
+            <h2 className="card-title">서술형 피드백</h2>
+            <p className="text-muted" style={{ marginBottom: '0.75rem', fontSize: '0.9rem' }}>
+              가장 아쉬운 점이나 다음에 반드시 다룰 내용을 한 문장으로 적어주세요.
+            </p>
+            <textarea
+              className="form-textarea"
+              style={{ minHeight: '100px', width: '100%' }}
+              placeholder="예: 지역 환류 로드맵과 안전장치 기준이 모호합니다."
+              value={freeFeedback}
+              onChange={(e) => setFreeFeedback(e.target.value)}
               disabled={isSubmitted}
             />
           </div>
@@ -229,25 +357,50 @@ export default function ParticipantConsensusScreen({ meeting, onBack }: Particip
           <button 
             className="btn btn-primary" 
             onClick={handleSubmit}
-            disabled={!agreementStatus}
+            disabled={!agreementStatus || llmLoading}
             style={{ minWidth: '200px', fontSize: '1.1rem', padding: '1rem 2rem' }}
           >
-            피드백 제출하기
+            {llmLoading ? '제출 중...' : '피드백 제출하기'}
           </button>
         </div>
       ) : (
-        <div style={{ 
-          textAlign: 'center', 
-          marginTop: '2rem',
-          padding: '1rem',
-          background: '#e8f5e9',
-          borderRadius: '8px',
-          border: '1px solid #4caf50'
-        }}>
-          <p style={{ color: '#2e7d32', fontSize: '1rem', fontWeight: '600', margin: 0 }}>
-            ✓ 피드백이 제출되었습니다. 주관자 화면에 전송되었습니다.
-          </p>
-        </div>
+        <>
+          <div style={{ 
+            textAlign: 'center', 
+            marginTop: '2rem',
+            padding: '1rem',
+            background: '#e8f5e9',
+            borderRadius: '8px',
+            border: '1px solid #4caf50'
+          }}>
+            <p style={{ color: '#2e7d32', fontSize: '1rem', fontWeight: '600', margin: 0 }}>
+              ✓ 피드백이 제출되었습니다. 주관자 화면에 전송되었습니다.
+            </p>
+          </div>
+
+          <div className="card" style={{ marginTop: '1.25rem' }}>
+            <h2 className="card-title" style={{ marginBottom: '0.5rem', fontSize: '1.1rem' }}>AI 구조화 결과</h2>
+            {llmError && <div style={{ color: '#c62828', marginBottom: '0.75rem' }}>LLM 오류: {llmError}</div>}
+            {llmLoading && <div className="text-muted">LLM 분석 중...</div>}
+            {!llmLoading && llmParsed && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#333' }}>
+                <div><strong>감정:</strong> {llmParsed.sentiment || '—'}</div>
+                <div><strong>핵심 이슈:</strong> {llmParsed.key_issue || '—'}</div>
+                <div><strong>미해결 포인트:</strong> {llmParsed.unresolved_point || '—'}</div>
+                <div><strong>다음 제안:</strong> {llmParsed.suggestion_for_next || '—'}</div>
+              </div>
+            )}
+            {!llmLoading && !llmParsed && !llmError && (
+              <div className="text-muted">LLM 결과를 파싱할 수 없습니다. 원문을 확인하세요.</div>
+            )}
+            {IS_DEMO_MODE && llmRaw && (
+              <details style={{ marginTop: '0.75rem' }}>
+                <summary style={{ cursor: 'pointer', color: '#1a73e8', fontWeight: 600 }}>LLM 출력 원문 보기</summary>
+                <pre style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.6, paddingTop: '0.5rem' }}>{llmRaw}</pre>
+              </details>
+            )}
+          </div>
+        </>
       )}
     </div>
   )

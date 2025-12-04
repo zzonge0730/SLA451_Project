@@ -12,6 +12,8 @@ import ParticipantLiveScreen from './screens/ParticipantLiveScreen'
 import ParticipantTranslationScreen from './screens/ParticipantTranslationScreen'
 import ParticipantConsensusScreen from './screens/ParticipantConsensusScreen'
 import WaitingOverlay from './components/WaitingOverlay'
+import type { ScenarioMode } from './data/scenario'
+import { IS_DEMO_MODE } from './config'
 
 type Screen = 
   | 'home'
@@ -37,9 +39,10 @@ type UserRole = 'moderator' | 'participant'
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('home')
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null)
-  const [userRole, setUserRole] = useState<UserRole>('moderator')
+  const [userRole, setUserRole] = useState<UserRole>(IS_DEMO_MODE ? 'moderator' : 'participant')
   const [isWaiting, setIsWaiting] = useState(false)
   const [hasReceivedPhaseChange, setHasReceivedPhaseChange] = useState(false)
+  const [scenarioMode, setScenarioMode] = useState<ScenarioMode>('scripted')
   
   // 📡 브로드캐스트 채널 생성 (탭 간 통신용)
   const channelRef = useRef<BroadcastChannel | null>(null)
@@ -97,7 +100,7 @@ function App() {
 
   const handleMeetingSelect = (meeting: Meeting, role: UserRole) => {
     setSelectedMeeting(meeting)
-    setUserRole(role)
+    setUserRole(IS_DEMO_MODE ? role : 'participant')
     setCurrentScreen('phase-selector')
     
     // 주관자가 회의를 고르면 참가자들에게도 알림
@@ -157,7 +160,11 @@ function App() {
   return (
     <div className="container">
       {currentScreen === 'home' && (
-        <Home onMeetingSelect={handleMeetingSelect} />
+        <Home
+          onMeetingSelect={handleMeetingSelect}
+          scenarioMode={scenarioMode}
+          onScenarioChange={setScenarioMode}
+        />
       )}
       {currentScreen === 'phase-selector' && selectedMeeting && (
         <PhaseSelector
@@ -184,6 +191,7 @@ function App() {
       {currentScreen === 'phase-2' && (
         <Phase2
           meeting={selectedMeeting}
+          scenarioMode={scenarioMode}
           onBack={handleBackToPhaseSelector}
           onNext={() => handleNextPhase(2)}
         />
