@@ -42,7 +42,7 @@ function App() {
   const [userRole, setUserRole] = useState<UserRole>(IS_DEMO_MODE ? 'moderator' : 'participant')
   const [isWaiting, setIsWaiting] = useState(false)
   const [hasReceivedPhaseChange, setHasReceivedPhaseChange] = useState(false)
-  const [scenarioMode, setScenarioMode] = useState<ScenarioMode>('scripted')
+  const [scenarioMode] = useState<ScenarioMode>('scripted')
   
   // 📡 브로드캐스트 채널 생성 (탭 간 통신용)
   const channelRef = useRef<BroadcastChannel | null>(null)
@@ -162,8 +162,6 @@ function App() {
       {currentScreen === 'home' && (
         <Home
           onMeetingSelect={handleMeetingSelect}
-          scenarioMode={scenarioMode}
-          onScenarioChange={setScenarioMode}
         />
       )}
       {currentScreen === 'phase-selector' && selectedMeeting && (

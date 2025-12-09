@@ -1,3 +1,5 @@
+import { IS_DEMO_MODE } from '../config'
+
 type Meeting = {
   id: string
   name: string
@@ -6,8 +8,6 @@ type Meeting = {
 
 type HomeProps = {
   onMeetingSelect: (meeting: Meeting, role: 'moderator' | 'participant') => void
-  scenarioMode: 'scripted' | 'llm'
-  onScenarioChange: (mode: 'scripted' | 'llm') => void
 }
 
 const mockMeetings: Meeting[] = [
@@ -18,35 +18,11 @@ const mockMeetings: Meeting[] = [
   }
 ]
 
-export default function Home({ onMeetingSelect, scenarioMode, onScenarioChange }: HomeProps) {
+export default function Home({ onMeetingSelect }: HomeProps) {
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">8조 가치번역 AI Agent</h1>
-      </div>
-
-      <div className="card" style={{ marginBottom: '1rem' }}>
-        <h3 className="card-title" style={{ marginBottom: '0.35rem' }}>시나리오 소스 선택</h3>
-        <p className="text-muted" style={{ marginBottom: '0.75rem' }}>Home 단계에서 선택한 모드가 전체 Phase에 적용됩니다.</p>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button
-            className={`btn ${scenarioMode === 'scripted' ? 'btn-primary' : ''}`}
-            style={{ padding: '0.6rem 1rem' }}
-            onClick={() => onScenarioChange('scripted')}
-          >
-            하드코딩 데모
-          </button>
-          <button
-            className={`btn ${scenarioMode === 'llm' ? 'btn-primary' : ''}`}
-            style={{ padding: '0.6rem 1rem' }}
-            onClick={() => onScenarioChange('llm')}
-          >
-            LLM 모드
-          </button>
-          <span className="tag" style={{ background: '#f7f7f7', borderColor: '#e0e0e0', color: '#424242', margin: 0 }}>
-            현재: {scenarioMode === 'llm' ? 'LLM 연결' : '스크립트'}
-          </span>
-        </div>
       </div>
 
       <div>
@@ -81,4 +57,3 @@ export default function Home({ onMeetingSelect, scenarioMode, onScenarioChange }
     </div>
   )
 }
-import { IS_DEMO_MODE } from '../config'

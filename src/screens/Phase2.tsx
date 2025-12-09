@@ -254,7 +254,7 @@ export default function Phase2({ meeting, onBack, onNext, scenarioMode }: Phase2
             <p className="text-muted" style={{ marginBottom: 0 }}>{activeScenario.description}</p>
           </div>
           <span className="tag" style={{ background: '#eef4ff', borderColor: '#cddcff', color: '#1f3b80' }}>
-            {scenarioMode === 'llm' ? 'LLM 모드 (Home에서 설정)' : '하드코딩 데모 (Home에서 설정)'}
+            {scenarioMode === 'llm' ? 'LLM 모드' : '하드코딩 데모'}
           </span>
         </div>
       </div>
